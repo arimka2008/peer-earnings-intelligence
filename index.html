@@ -130,6 +130,72 @@ const PRICE_REACTION_KEYS = [
   { key:'plus30d',     label:'+30 Days' },
 ];
 
+const EVENT_TYPES = [
+  'Earnings Release','Investor Presentation','Earnings Transcript',
+  'Dividend Announcement','Share Buyback','Capital Raise',
+  'Bond Issuance','Management Change','M&A Announcement','Guidance Change',
+];
+const EVENT_CAT_STYLES = {
+  critical:      { bg:'#fef2f2', text:'#dc2626', border:'#fca5a5', dot:'#dc2626',  label:'Critical' },
+  important:     { bg:'#fffbeb', text:'#b45309', border:'#fde68a', dot:'#f59e0b',  label:'Important' },
+  informational: { bg:'#eff6ff', text:'#1d4ed8', border:'#bfdbfe', dot:'#3b82f6',  label:'Info' },
+};
+const EVENT_TYPE_ICON = {
+  'Earnings Release':'📊','Investor Presentation':'🎤','Earnings Transcript':'📝',
+  'Dividend Announcement':'💰','Share Buyback':'🔄','Capital Raise':'📈',
+  'Bond Issuance':'🏦','Management Change':'👤','M&A Announcement':'🤝','Guidance Change':'🎯',
+};
+
+const CORPORATE_ALERTS = [
+  // ── HALYK BANK ──────────────────────────────────────────
+  { id:'ca-hsbk-01', peerId:'halyk', date:'2026-02-14', eventType:'Earnings Release',      category:'critical',      headline:'Halyk Bank Q4 & FY2025 Results', summary:'FY2025 net income KZT 952bn (+19% YoY). NIM stable at 5.8%. CET1 20.1%. Board approved KZT 380bn dividend representing 40% payout ratio. FY2026 guidance: ROE 25–28%, loan growth 18–22%, CIR below 30%.' },
+  { id:'ca-hsbk-02', peerId:'halyk', date:'2026-02-28', eventType:'Dividend Announcement',  category:'critical',      headline:'KZT 380bn FY2025 Final Dividend Declared', summary:'Halyk declared final dividend of KZT 380bn (40% of FY2025 net income). Record date March 15, 2026. Payment date April 10, 2026. Implied yield ~9.1% at current price.' },
+  { id:'ca-hsbk-03', peerId:'halyk', date:'2026-01-20', eventType:'Investor Presentation',  category:'informational', headline:'2025 Annual Investor Day — Strategy & FY2026 Outlook', summary:'Halyk presented FY2026 targets: ROE 25–28%, loan growth 18–22%, CIR below 30%. Digital MAU target 10mn. Capital allocation priorities: growth reinvestment and dividend stability.' },
+  { id:'ca-hsbk-04', peerId:'halyk', date:'2026-03-05', eventType:'Guidance Change',         category:'important',     headline:'FY2026 NIM Guidance Upgraded to 5.7–6.0%', summary:'Management raised NIM guidance from 5.5–5.8% to 5.7–6.0%, citing stronger deposit repricing and improved SME loan mix. Loan growth guidance maintained at 18–22%.' },
+  { id:'ca-hsbk-05', peerId:'halyk', date:'2026-02-14', eventType:'Earnings Transcript',     category:'informational', headline:'Q4 2025 Earnings Call Transcript Available', summary:'Full transcript of Q4 2025 earnings call available. Key Q&A themes: NIM sustainability, Kaspi competitive dynamics, digital monetisation, and capital return policy for 2026.' },
+  // ── KASPI.KZ ────────────────────────────────────────────
+  { id:'ca-kspi-01', peerId:'kaspi', date:'2026-02-20', eventType:'Earnings Release',      category:'critical',      headline:'Kaspi.kz Q4 & FY2025 Results', summary:'FY2025 net income KZT 1,678bn (+24% YoY). NIM 18.4%. CET1 22.4%. Türkiye JV processed first transactions. FY2026 guidance: loan growth 22–27%, NIM 17–18%, CIR below 25%.' },
+  { id:'ca-kspi-02', peerId:'kaspi', date:'2026-03-10', eventType:'M&A Announcement',      category:'critical',      headline:'Kaspi Türkiye JV — Full Commercial Launch Q2 2026', summary:'Kaspi confirmed commercial launch of Türkiye JV in Q2 2026. Management guided Türkiye to contribute $50–80mn net income by FY2027. Azerbaijan JV evaluation underway.' },
+  { id:'ca-kspi-03', peerId:'kaspi', date:'2026-01-15', eventType:'Dividend Announcement',  category:'critical',      headline:'55% Payout Ratio — Record FY2025 Dividend', summary:'Kaspi declared FY2025 dividend at 55% payout ratio (up from 50% in FY2024). Total distribution KZT 922bn. Management cited CET1 of 22.4% as rationale for increased payout.' },
+  { id:'ca-kspi-04', peerId:'kaspi', date:'2025-11-12', eventType:'Share Buyback',          category:'important',     headline:'$200mn Share Repurchase Programme Launched', summary:'Board approved $200mn share repurchase programme over 12 months, in addition to regular dividend. Shares to be cancelled. Programme to start January 2026.' },
+  { id:'ca-kspi-05', peerId:'kaspi', date:'2026-02-20', eventType:'Earnings Transcript',    category:'informational', headline:'Q4 2025 Analyst Q&A Transcript', summary:'Full transcript available. Key themes: NIM guidance conservatism, Türkiye JV capital requirements, NBK rate-cut sensitivity, and household leverage concerns from buy-side.' },
+  // ── TBC BANK GROUP ───────────────────────────────────────
+  { id:'ca-tbc-01', peerId:'tbc',   date:'2026-03-05', eventType:'Earnings Release',      category:'critical',      headline:'TBC Bank Q4 & FY2025 Results', summary:'Q4 net income GEL 398mn (+7.3% QoQ). TBC Uzbekistan achieved operational break-even ahead of schedule. FY2026 RoE guidance upgraded to 28–32%.' },
+  { id:'ca-tbc-02', peerId:'tbc',   date:'2025-12-18', eventType:'Guidance Change',        category:'important',     headline:'Uzbekistan Break-Even — 6 Months Ahead of Schedule', summary:'TBC confirmed TBC Uzbekistan reached operational profitability in December 2025. Group RoE guidance upgraded from 25–28% to 28–32%. Third market entry under active evaluation.' },
+  { id:'ca-tbc-03', peerId:'tbc',   date:'2026-02-28', eventType:'Dividend Announcement',  category:'critical',      headline:'GEL 4.80/share Interim Dividend Declared', summary:'TBC declared GEL 4.80/share interim dividend (32% of H2 2025 net income). Payment March 25, 2026. Full-year payout maintained at 30–40% policy range.' },
+  { id:'ca-tbc-04', peerId:'tbc',   date:'2026-01-30', eventType:'M&A Announcement',      category:'important',     headline:'Third Market Entry — Azerbaijan & Armenia Under Review', summary:'TBC confirmed active evaluation of third market expansion. Azerbaijan and Armenia as primary candidates. Update expected at Q1 2026 results in May 2026.' },
+  // ── LION FINANCE GROUP (BGEO) ────────────────────────────
+  { id:'ca-bgeo-01', peerId:'lion', date:'2026-02-25', eventType:'Earnings Release',      category:'critical',      headline:'Lion Finance Group Q4 & FY2025 Results', summary:'Q4 net income GEL 320mn (+8.8% QoQ). FY2025 net income GEL 1,182mn. NIM 7.6% at top of guidance. FY2026 guidance upgraded: RoE 24–28%, NIM 7.5–8.0%.' },
+  { id:'ca-bgeo-02', peerId:'lion', date:'2025-11-08', eventType:'Bond Issuance',          category:'important',     headline:'GEL 500mn 5-Year Bond — Orderbook 2.3× Covered', summary:'Lion Finance Group priced GEL 500mn senior unsecured notes due 2030 at 12.25%. Proceeds fund mortgage and corporate loan growth. Orderbook 2.3× oversubscribed.' },
+  { id:'ca-bgeo-03', peerId:'lion', date:'2025-09-15', eventType:'Dividend Announcement',  category:'critical',      headline:'GEL 6.20/share Interim Dividend', summary:'Lion Finance declared GEL 6.20/share interim dividend (40% H1 2025 net income). Payment September 30, 2025. Full-year payout target 40–45%.' },
+  { id:'ca-bgeo-04', peerId:'lion', date:'2026-01-22', eventType:'Guidance Change',        category:'important',     headline:'SME Digital Platform H1 2026 Launch Confirmed', summary:'Management confirmed H1 2026 launch of SME digital banking platform. Initial target: 50,000 SME clients by year-end. Expected to reduce branch transaction costs by 35%.' },
+  // ── OTP BANK ────────────────────────────────────────────
+  { id:'ca-otp-01', peerId:'otp',   date:'2026-03-12', eventType:'Earnings Release',      category:'critical',      headline:'OTP Bank Q4 & FY2025 Results', summary:'FY2025 consolidated net income HUF 1,148bn (+16% YoY). NIM 4.2%. CEE subsidiaries +18% YoY. Digital customers 9.2mn. HUF 380/share dividend proposed.' },
+  { id:'ca-otp-02', peerId:'otp',   date:'2026-01-28', eventType:'M&A Announcement',      category:'critical',      headline:'OTP in Advanced Talks for Serbian Acquisition (~EUR 2.1bn Assets)', summary:'OTP confirmed advanced discussions to acquire a Serbian lender with ~EUR 2.1bn assets. Subject to regulatory approval. Management guided completion by Q3 2026. Deal to be funded from existing capital.' },
+  { id:'ca-otp-03', peerId:'otp',   date:'2025-12-10', eventType:'Management Change',     category:'important',     headline:'New Group CFO Appointed — Effective January 2026', summary:'OTP Bank appointed László Bencsik as new Group CFO effective January 2026, replacing retiring incumbent. Bencsik previously Deputy CFO at Erste Group.' },
+  { id:'ca-otp-04', peerId:'otp',   date:'2025-10-15', eventType:'Capital Raise',         category:'critical',      headline:'HUF 120bn Tier 2 Capital Issuance', summary:'OTP issued HUF 120bn Tier 2 subordinated notes (10Y, 8.40%) to support SEE expansion. Proceeds earmarked for regulatory capital buffer ahead of potential acquisition.' },
+  // ── PKO BANK POLSKI ─────────────────────────────────────
+  { id:'ca-pko-01', peerId:'pko',   date:'2026-02-18', eventType:'Earnings Release',      category:'critical',      headline:'PKO Bank Polski Q4 & FY2025 Results', summary:'FY2025 net income PLN 7.8bn (+13% YoY). NIM 4.8%. Mortgage book +14.2% YoY. PLN 1.5bn buyback announced. FY2026 guidance: ROE 16–18%, loan growth 10–13%.' },
+  { id:'ca-pko-02', peerId:'pko',   date:'2026-02-18', eventType:'Share Buyback',          category:'important',     headline:'PLN 1.5bn Buyback — Largest in PKO History', summary:'PKO announced PLN 1.5bn share repurchase for H1 2026, the largest in PKO history. CET1 18.4% provides capacity. Shares to be cancelled on completion.' },
+  { id:'ca-pko-03', peerId:'pko',   date:'2025-11-20', eventType:'Guidance Change',        category:'important',     headline:'Swiss Franc Mortgage Reserve PLN 3.2bn — Guidance Maintained', summary:'PKO confirmed PLN 3.2bn provision for CHF mortgages remains adequate. Management expects resolution pace to accelerate in H1 2026 following Supreme Court ruling.' },
+  { id:'ca-pko-04', peerId:'pko',   date:'2025-09-10', eventType:'Bond Issuance',          category:'informational', headline:'EUR 500mn Green Bond Issued', summary:'PKO issued EUR 500mn 5-year green bonds at Euribor +115bps. Allocated to green mortgage and renewable energy financing. Orderbook EUR 2.8bn across 180 investors.' },
+  // ── BANK PEKAO ──────────────────────────────────────────
+  { id:'ca-pekao-01', peerId:'pekao', date:'2025-10-28', eventType:'Earnings Release',      category:'critical',      headline:'Bank Pekao Q3 2025 Results', summary:'Q3 net income PLN 1.64bn (+11% YoY). NIM 4.6%. CIR 41.2%. NPL 4.1%. FY2025 guidance maintained. Polish rate environment supportive.' },
+  { id:'ca-pekao-02', peerId:'pekao', date:'2025-11-25', eventType:'Dividend Announcement',  category:'critical',      headline:'PLN 10.20/share Interim Dividend', summary:'Pekao declared PLN 10.20/share interim dividend from 9M 2025 profits. Total payout PLN 2.7bn. Record December 10. Payment December 28, 2025.' },
+  { id:'ca-pekao-03', peerId:'pekao', date:'2025-12-05', eventType:'Investor Presentation',  category:'informational', headline:'Strategic Plan 2026–2028: Growth & Digitalisation', summary:'Pekao 3-year plan: ROE above 17%, loan growth 10–13%, CIR below 40% by 2028. Digital adoption target: 80% of transactions via mobile by 2027.' },
+  { id:'ca-pekao-04', peerId:'pekao', date:'2026-01-10', eventType:'Management Change',     category:'important',     headline:'New CEO Leszek Skiba — Effective February 2026', summary:'Supervisory board appointed Leszek Skiba as CEO effective February 2026, replacing incumbent stepping down after 4 years. Skiba previously served at Polish Ministry of Finance.' },
+  // ── KOMERCNI BANKA ──────────────────────────────────────
+  { id:'ca-kb-01', peerId:'kb',     date:'2025-10-30', eventType:'Earnings Release',      category:'critical',      headline:'Komercni Banka Q3 2025 Results', summary:'Q3 net income CZK 4.2bn (+9% YoY). NIM 3.1%. Loan growth 8.4% YoY. CET1 18.6%. Czech macro resilience supporting credit quality. FY2025 guidance maintained.' },
+  { id:'ca-kb-02', peerId:'kb',     date:'2025-11-15', eventType:'Bond Issuance',          category:'important',     headline:'EUR 500mn Senior Preferred Bond — Orderbook 3.4× Covered', summary:'Komercni priced EUR 500mn 5-year senior preferred at mid-swaps +78bps. MREL-compliant. Orderbook EUR 3.4bn across 210 investors. Proceeds refinance 2026 maturities.' },
+  { id:'ca-kb-03', peerId:'kb',     date:'2026-01-18', eventType:'Guidance Change',        category:'important',     headline:'FY2025 Dividend Payout Upgraded to 70%', summary:'KB confirmed 70% payout ratio for FY2025, above prior guidance of 60–65%, reflecting strong capital generation and CET1 comfortably above regulatory minimum.' },
+  { id:'ca-kb-04', peerId:'kb',     date:'2026-02-10', eventType:'Investor Presentation',  category:'informational', headline:'2026 Investor Day — Digital Strategy Roadmap', summary:'Komercni presented digital transformation roadmap: 1mn digital users by 2027, 50% branch cost reduction by 2028. Société Générale integration synergies on track.' },
+  // ── FREEDOM HOLDING ─────────────────────────────────────
+  { id:'ca-frhc-01', peerId:'frhc', date:'2026-02-12', eventType:'Earnings Release',      category:'critical',      headline:'Freedom Holding Q3 FY2026 Results', summary:'Revenue $412mn (+28% YoY). Net income $89mn (+22% YoY). Kazakhstan accounts 1.8mn (+34% YoY). FY2026 guidance: revenue $1.7–1.8bn, net income $360–380mn.' },
+  { id:'ca-frhc-02', peerId:'frhc', date:'2025-10-20', eventType:'Bond Issuance',          category:'important',     headline:'$300mn 5-Year Senior Notes at 9.875%', summary:'Freedom Holding priced $300mn 5-year senior unsecured notes at 9.875%. Rated B+ by S&P. Proceeds fund Kazakhstan banking expansion and insurance segment growth.' },
+  { id:'ca-frhc-03', peerId:'frhc', date:'2026-01-08', eventType:'Guidance Change',        category:'important',     headline:'SEC Compliance — $45mn Investment, No Enforcement Actions Expected', summary:'Freedom Holding disclosed $45mn investment in US regulatory compliance infrastructure over 2 years. No material SEC enforcement actions anticipated. Full cooperation maintained.' },
+  { id:'ca-frhc-04', peerId:'frhc', date:'2025-11-05', eventType:'M&A Announcement',      category:'critical',      headline:'Freedom Bank KZ Receives Universal Banking Licence', summary:'Freedom Bank KZ received expanded universal banking licence from NBK, enabling mortgage and corporate lending. Management projects 3mn customers by FY2027.' },
+];
+
 // ──────────────────────────────────────────────
 // SAMPLE DATA
 // ──────────────────────────────────────────────
@@ -702,26 +768,13 @@ function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
     return parts.join(' · ');
   }, [halykEntry, peerAvg, peerValAvg, coreEntries, halyk, halykValuation]);
 
-  // Latest alerts (top KPI moves)
-  const alerts = useMemo(() => {
-    const items = [];
-    const sorted = [...entries].sort((a,b) => b.year !== a.year ? b.year-a.year : QUARTER_ORDER[b.quarter]-QUARTER_ORDER[a.quarter]);
-    sorted.slice(0,20).forEach(e => {
-      const peer = peers.find(p => p.id === e.peerId);
-      if (!peer) return;
-      const kpis = e.kpis || {};
-      if (kpis.roe?.qoq != null && Math.abs(kpis.roe.qoq) >= 0.5) {
-        items.push({ id:`${e.id}-roe`, type: kpis.roe.qoq>0?'positive':'negative', peer, label:`${peer.name} RoE`, value:`${kpis.roe.qoq>0?'+':''}${kpis.roe.qoq.toFixed(1)}pp QoQ → ${kpis.roe.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}` });
-      }
-      if (kpis.nim?.qoq != null && Math.abs(kpis.nim.qoq) >= 0.2) {
-        items.push({ id:`${e.id}-nim`, type: kpis.nim.qoq>0?'positive':'warning', peer, label:`${peer.name} NIM`, value:`${kpis.nim.qoq>0?'+':''}${kpis.nim.qoq.toFixed(1)}pp QoQ → ${kpis.nim.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}` });
-      }
-      if (e.valuation?.pe) {
-        items.push({ id:`${e.id}-val`, type:'info', peer, label:`${peer.ticker} valuation`, value:`P/E ${e.valuation.pe.toFixed(1)}x · P/B ${e.valuation.pb?.toFixed(2)||'—'}x · ${e.valuation.mktCapLabel||''}`, q:`${e.quarter} ${e.year}` });
-      }
-    });
-    return items.slice(0,4);
-  }, [entries, peers]);
+  // Latest corporate alerts (3 most recent Critical/Important)
+  const latestCorporateAlerts = useMemo(() => {
+    return [...CORPORATE_ALERTS]
+      .filter(a => a.category === 'critical' || a.category === 'important')
+      .sort((a,b) => b.date.localeCompare(a.date))
+      .slice(0, 3);
+  }, []);
 
   const navigate = (id) => { setSelectedPeer(id); setView('peer-detail'); };
 
@@ -765,24 +818,18 @@ function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
         </div>
       )}
 
-      {/* 3 — Latest Alerts */}
-      {alerts.length > 0 && (
+      {/* 3 — Latest Peer Alerts */}
+      {latestCorporateAlerts.length > 0 && (
         <div>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 16px 8px'}}>
-            <div className="section-header" style={{padding:0}}>Latest Alerts</div>
+            <div className="section-header" style={{padding:0}}>Latest Peer Alerts</div>
             <button onClick={() => setView('alerts')} style={{fontSize:12,color:'#1B3A6B',fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>View all →</button>
           </div>
           <div style={{padding:'0 16px',display:'flex',flexDirection:'column',gap:8}}>
-            {alerts.map(a => (
-              <div key={a.id} className={`mobile-card alert-${a.type}`} style={{padding:'10px 12px',borderWidth:1,borderStyle:'solid',display:'flex',alignItems:'flex-start',gap:10}}>
-                <div style={{width:28,height:28,borderRadius:8,background:a.peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:11,flexShrink:0}}>{(a.peer.initials||'?')[0]}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#374151'}}>{a.label}</div>
-                  <div style={{fontSize:12,color:'#64748b',marginTop:1}}>{a.value}</div>
-                </div>
-                <div style={{fontSize:10,color:'#94a3b8',whiteSpace:'nowrap',flexShrink:0}}>{a.q}</div>
-              </div>
-            ))}
+            {latestCorporateAlerts.map(alert => {
+              const peer = peers.find(p => p.id === alert.peerId);
+              return <AlertCard key={alert.id} alert={alert} peer={peer} compact={true} />;
+            })}
           </div>
         </div>
       )}
@@ -1936,78 +1983,176 @@ function SettingsModal({ onClose }) {
 // ──────────────────────────────────────────────
 // ALERTS VIEW
 // ──────────────────────────────────────────────
-function AlertsView() {
-  const { peers, entries } = useContext(AppCtx);
+// ──────────────────────────────────────────────
+// ALERT CARD (reusable)
+// ──────────────────────────────────────────────
+function AlertCard({ alert, peer, compact }) {
+  const cs = EVENT_CAT_STYLES[alert.category] || EVENT_CAT_STYLES.informational;
+  const icon = EVENT_TYPE_ICON[alert.eventType] || '📋';
+  const dateObj = new Date(alert.date);
+  const dateStr = dateObj.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  const dateShort = dateObj.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
 
-  const alerts = useMemo(() => {
+  return (
+    <div style={{background:'white',borderRadius:12,border:`1px solid ${cs.border}`,borderLeft:`3px solid ${cs.dot}`,overflow:'hidden'}}>
+      {/* Header row */}
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px 8px',borderBottom:'1px solid #f8fafc'}}>
+        <div style={{width:30,height:30,borderRadius:8,background:peer?.color||'#94a3b8',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:11,flexShrink:0}}>
+          {(peer?.initials||'?')[0]}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+            <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{peer?.flag} {peer?.name}</span>
+            <span style={{fontSize:11,fontFamily:'monospace',color:'#94a3b8',background:'#f1f5f9',padding:'0 5px',borderRadius:3}}>{peer?.ticker}</span>
+          </div>
+        </div>
+        <div style={{flexShrink:0,textAlign:'right'}}>
+          <div style={{fontSize:11,fontWeight:600,color:'#64748b'}}>{compact ? dateShort : dateStr}</div>
+        </div>
+      </div>
+      {/* Body */}
+      <div style={{padding:'8px 12px 10px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:5,flexWrap:'wrap'}}>
+          <span style={{fontSize:11,background:cs.bg,color:cs.text,border:`1px solid ${cs.border}`,borderRadius:10,padding:'1px 8px',fontWeight:700}}>{cs.label}</span>
+          <span style={{fontSize:11,color:'#94a3b8'}}>{icon} {alert.eventType}</span>
+        </div>
+        <div style={{fontSize:13,fontWeight:700,color:'#1f2937',lineHeight:1.4,marginBottom:compact?0:4}}>{alert.headline}</div>
+        {!compact && <div style={{fontSize:12,color:'#64748b',lineHeight:1.55,marginTop:4}}>{alert.summary}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// ALERTS VIEW (full page)
+// ──────────────────────────────────────────────
+function AlertsView() {
+  const { peers } = useContext(AppCtx);
+
+  // Sort alerts newest-first
+  const allAlerts = useMemo(() =>
+    [...CORPORATE_ALERTS].sort((a,b) => b.date.localeCompare(a.date))
+  , []);
+
+  const [catFilter,  setCatFilter]  = useState('All');
+  const [bankFilter, setBankFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [activeTab,  setActiveTab]  = useState('corporate'); // 'corporate' | 'kpi'
+
+  // KPI-signals (auto-generated from entries)
+  const { entries } = useContext(AppCtx);
+  const kpiSignals = useMemo(() => {
     const items = [];
-    const sorted = [...entries].sort((a,b) => b.year !== a.year ? b.year-a.year : QUARTER_ORDER[b.quarter]-QUARTER_ORDER[a.quarter]);
+    const sorted = [...entries].sort((a,b) => b.year!==a.year?b.year-a.year:QUARTER_ORDER[b.quarter]-QUARTER_ORDER[a.quarter]);
     sorted.forEach(e => {
-      const peer = peers.find(p => p.id === e.peerId);
-      if (!peer) return;
-      const kpis = e.kpis || {};
-      // New entry
-      items.push({ id:`${e.id}-entry`, type:'info', peer, title:`${peer.name} ${e.quarter} ${e.year} results`, body: e.headlineTakeaway, q:`${e.quarter} ${e.year}`, category:'New Entry' });
-      // RoE move
-      if (kpis.roe?.qoq != null && Math.abs(kpis.roe.qoq) >= 0.4) {
-        items.push({ id:`${e.id}-roe`, type: kpis.roe.qoq>0?'positive':'negative', peer, title:`RoE ${kpis.roe.qoq>0?'▲':'▼'} ${Math.abs(kpis.roe.qoq).toFixed(1)}pp at ${peer.name}`, body:`RoE moved to ${kpis.roe.v.toFixed(1)}% in ${e.quarter} ${e.year}`, q:`${e.quarter} ${e.year}`, category:'KPI Move' });
-      }
-      // NIM move
-      if (kpis.nim?.qoq != null && Math.abs(kpis.nim.qoq) >= 0.2) {
-        items.push({ id:`${e.id}-nim`, type: kpis.nim.qoq>0?'positive':'warning', peer, title:`NIM ${kpis.nim.qoq>0?'expanded':'compressed'} at ${peer.name}`, body:`NIM ${kpis.nim.qoq>0?'+':''}${kpis.nim.qoq.toFixed(1)}pp to ${kpis.nim.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}`, category:'NIM Alert' });
-      }
-      // NPL deterioration
-      if (kpis.nplRatio?.qoq != null && kpis.nplRatio.qoq > 0.3) {
-        items.push({ id:`${e.id}-npl`, type:'negative', peer, title:`NPL Ratio up ${kpis.nplRatio.qoq.toFixed(1)}pp at ${peer.name}`, body:`NPL ratio increased to ${kpis.nplRatio.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}`, category:'Asset Quality' });
-      }
-      // Valuation
-      if (e.valuation?.pe) {
-        items.push({ id:`${e.id}-val`, type:'info', peer, title:`${peer.ticker} P/E ${e.valuation.pe.toFixed(1)}x`, body:`P/B ${e.valuation.pb?.toFixed(2)||'—'}x · Div yield ${e.valuation.divYield?.toFixed(1)||'—'}% · ${e.valuation.mktCapLabel||''}`, q:`${e.quarter} ${e.year}`, category:'Valuation' });
-      }
-      // Price reaction
-      if (e.valuation?.priceReaction?.earningsDay != null) {
-        const r = e.valuation.priceReaction.earningsDay;
-        items.push({ id:`${e.id}-rx`, type: r>0?'positive':r<0?'negative':'info', peer, title:`${peer.ticker} ${r>0?'+':''}${r.toFixed(1)}% on earnings day`, body:`+1d: ${e.valuation.priceReaction.plus1d?.toFixed(1)||'—'}% · +5d: ${e.valuation.priceReaction.plus5d?.toFixed(1)||'—'}% · +30d: ${e.valuation.priceReaction.plus30d?.toFixed(1)||'—'}%`, q:`${e.quarter} ${e.year}`, category:'Price Reaction' });
-      }
+      const peer = peers.find(p=>p.id===e.peerId); if(!peer) return;
+      const k = e.kpis||{};
+      if(k.roe?.qoq!=null&&Math.abs(k.roe.qoq)>=0.4) items.push({id:`${e.id}-roe`,category:k.roe.qoq>0?'positive':'negative',peer,label:'RoE Move',value:`${k.roe.qoq>0?'+':''}${k.roe.qoq.toFixed(1)}pp → ${k.roe.v.toFixed(1)}%`,q:`${e.quarter} ${e.year}`});
+      if(k.nim?.qoq!=null&&Math.abs(k.nim.qoq)>=0.2) items.push({id:`${e.id}-nim`,category:k.nim.qoq>0?'positive':'warning',peer,label:'NIM Move',value:`${k.nim.qoq>0?'+':''}${k.nim.qoq.toFixed(1)}pp → ${k.nim.v.toFixed(1)}%`,q:`${e.quarter} ${e.year}`});
+      if(e.valuation?.priceReaction?.earningsDay!=null){const r=e.valuation.priceReaction.earningsDay;items.push({id:`${e.id}-rx`,category:r>0?'positive':r<0?'negative':'informational',peer,label:'Price Reaction',value:`Earnings day ${r>0?'+':''}${r.toFixed(1)}%`,q:`${e.quarter} ${e.year}`});}
     });
-    return items.slice(0, 40);
+    return items;
   }, [entries, peers]);
 
-  const categories = ['All', 'New Entry', 'KPI Move', 'NIM Alert', 'Asset Quality', 'Valuation', 'Price Reaction'];
-  const [catFilter, setCatFilter] = useState('All');
-  const filtered = catFilter === 'All' ? alerts : alerts.filter(a => a.category === catFilter);
+  const filteredCorporate = useMemo(() => {
+    return allAlerts.filter(a => {
+      const peer = peers.find(p=>p.id===a.peerId);
+      if(catFilter!=='All' && a.category!==catFilter.toLowerCase()) return false;
+      if(bankFilter!=='All' && a.peerId!==bankFilter) return false;
+      if(typeFilter!=='All' && a.eventType!==typeFilter) return false;
+      return true;
+    });
+  }, [allAlerts, catFilter, bankFilter, typeFilter, peers]);
 
-  const typeColor = { positive:'#16a34a', negative:'#dc2626', warning:'#d97706', info:'#1d4ed8' };
-  const typeBg = { positive:'#f0fdf4', negative:'#fef2f2', warning:'#fffbeb', info:'#eff6ff' };
-  const typeBorder = { positive:'#86efac', negative:'#fca5a5', warning:'#fde68a', info:'#bfdbfe' };
+  const kpiBg   = {positive:'#f0fdf4',negative:'#fef2f2',warning:'#fffbeb',informational:'#eff6ff'};
+  const kpiBdr  = {positive:'#86efac',negative:'#fca5a5',warning:'#fde68a',informational:'#bfdbfe'};
+  const kpiClr  = {positive:'#16a34a',negative:'#dc2626',warning:'#b45309',informational:'#1d4ed8'};
+
+  const bankPeers = peers.filter(p => CORPORATE_ALERTS.some(a=>a.peerId===p.id));
 
   return (
     <div className="content-area" style={{background:'#f8fafc',minHeight:'100vh'}}>
-      <TopHeader title="Alerts" subtitle={`${alerts.length} signals`} />
-      <div className="hide-scrollbar" style={{display:'flex',gap:8,padding:'12px 16px 4px',overflowX:'auto'}}>
-        {categories.map(cat => (
-          <button key={cat} onClick={() => setCatFilter(cat)} style={{
-            padding:'5px 12px', borderRadius:20, border:'1px solid', whiteSpace:'nowrap', fontSize:12, fontWeight:600, cursor:'pointer',
-            background: catFilter===cat?'#1B3A6B':'white', color: catFilter===cat?'white':'#64748b', borderColor: catFilter===cat?'#1B3A6B':'#e2e8f0'
-          }}>{cat}</button>
+      <TopHeader title="Alerts Center" subtitle={`${CORPORATE_ALERTS.length} corporate events · ${kpiSignals.length} KPI signals`} />
+
+      {/* Tab switcher */}
+      <div style={{display:'flex',background:'white',borderBottom:'1px solid #e2e8f0',position:'sticky',top:0,zIndex:20}}>
+        {[{id:'corporate',label:`Corporate Events (${CORPORATE_ALERTS.length})`},{id:'kpi',label:`KPI Signals (${kpiSignals.length})`}].map(t=>(
+          <button key={t.id} className={`tab-btn ${activeTab===t.id?'active':''}`} style={{flex:1,textAlign:'center',fontSize:13}} onClick={()=>setActiveTab(t.id)}>{t.label}</button>
         ))}
       </div>
-      <div style={{padding:'8px 16px',display:'flex',flexDirection:'column',gap:8}}>
-        {filtered.length === 0 && <div style={{textAlign:'center',padding:32,color:'#94a3b8',fontSize:14}}>No alerts</div>}
-        {filtered.map(a => (
-          <div key={a.id} style={{background:typeBg[a.type],border:`1px solid ${typeBorder[a.type]}`,borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'flex-start',gap:10}}>
-            <div style={{width:32,height:32,borderRadius:8,background:a.peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:12,flexShrink:0}}>{(a.peer.initials||'?')[0]}</div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3,flexWrap:'wrap'}}>
-                <span style={{fontSize:11,fontWeight:700,color:typeColor[a.type],background:'white',padding:'1px 7px',borderRadius:10,border:`1px solid ${typeBorder[a.type]}`}}>{a.category}</span>
-                <span style={{fontSize:11,color:'#94a3b8'}}>{a.peer.flag} {a.peer.ticker} · {a.q}</span>
-              </div>
-              <div style={{fontSize:13,fontWeight:600,color:'#1f2937',marginBottom:2}}>{a.title}</div>
-              <div style={{fontSize:12,color:'#64748b',lineHeight:1.4}}>{a.body}</div>
-            </div>
+
+      {/* ── CORPORATE EVENTS TAB ── */}
+      {activeTab==='corporate' && (
+        <>
+          {/* Category pills */}
+          <div className="hide-scrollbar" style={{display:'flex',gap:6,padding:'10px 16px 4px',overflowX:'auto',background:'white',borderBottom:'1px solid #f1f5f9'}}>
+            {['All','critical','important','informational'].map(c=>{
+              const lbl = c==='All'?'All':EVENT_CAT_STYLES[c]?.label||c;
+              const cs  = c!=='All'?EVENT_CAT_STYLES[c]:null;
+              const active = catFilter===c;
+              return(
+                <button key={c} onClick={()=>setCatFilter(c)} style={{
+                  padding:'5px 13px',borderRadius:20,border:`1px solid`,whiteSpace:'nowrap',fontSize:12,fontWeight:700,cursor:'pointer',transition:'all .15s',
+                  background:active?(cs?.dot||'#1B3A6B'):'white',
+                  color:active?'white':(cs?.text||'#64748b'),
+                  borderColor:active?(cs?.dot||'#1B3A6B'):(cs?.border||'#e2e8f0'),
+                }}>{lbl}</button>
+              );
+            })}
           </div>
-        ))}
-      </div>
+
+          {/* Bank filter */}
+          <div className="hide-scrollbar" style={{display:'flex',gap:6,padding:'8px 16px 4px',overflowX:'auto',background:'white',borderBottom:'1px solid #f1f5f9'}}>
+            <button onClick={()=>setBankFilter('All')} style={{padding:'4px 12px',borderRadius:20,border:'1px solid',whiteSpace:'nowrap',fontSize:11,fontWeight:600,cursor:'pointer',background:bankFilter==='All'?'#1B3A6B':'white',color:bankFilter==='All'?'white':'#64748b',borderColor:bankFilter==='All'?'#1B3A6B':'#e2e8f0'}}>All Banks</button>
+            {bankPeers.map(p=>(
+              <button key={p.id} onClick={()=>setBankFilter(p.id)} style={{padding:'4px 12px',borderRadius:20,border:'1px solid',whiteSpace:'nowrap',fontSize:11,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',gap:4,background:bankFilter===p.id?p.color:'white',color:bankFilter===p.id?'white':'#64748b',borderColor:bankFilter===p.id?p.color:'#e2e8f0'}}>
+                {p.flag} {p.ticker}
+              </button>
+            ))}
+          </div>
+
+          {/* Event type filter */}
+          <div className="hide-scrollbar" style={{display:'flex',gap:6,padding:'8px 16px 8px',overflowX:'auto',background:'white',borderBottom:'1px solid #e2e8f0'}}>
+            <button onClick={()=>setTypeFilter('All')} style={{padding:'4px 12px',borderRadius:20,border:'1px solid',whiteSpace:'nowrap',fontSize:11,fontWeight:600,cursor:'pointer',background:typeFilter==='All'?'#1B3A6B':'white',color:typeFilter==='All'?'white':'#64748b',borderColor:typeFilter==='All'?'#1B3A6B':'#e2e8f0'}}>All Types</button>
+            {EVENT_TYPES.map(t=>(
+              <button key={t} onClick={()=>setTypeFilter(t)} style={{padding:'4px 10px',borderRadius:20,border:'1px solid',whiteSpace:'nowrap',fontSize:11,fontWeight:600,cursor:'pointer',background:typeFilter===t?'#1B3A6B':'white',color:typeFilter===t?'white':'#64748b',borderColor:typeFilter===t?'#1B3A6B':'#e2e8f0'}}>
+                {EVENT_TYPE_ICON[t]} {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Results */}
+          <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:8}}>
+            <div style={{fontSize:12,color:'#94a3b8',fontWeight:600,marginBottom:2}}>{filteredCorporate.length} event{filteredCorporate.length!==1?'s':''}</div>
+            {filteredCorporate.length===0 && (
+              <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontSize:14}}>No events match the current filters</div>
+            )}
+            {filteredCorporate.map(alert => {
+              const peer = peers.find(p=>p.id===alert.peerId);
+              return <AlertCard key={alert.id} alert={alert} peer={peer} compact={false} />;
+            })}
+          </div>
+        </>
+      )}
+
+      {/* ── KPI SIGNALS TAB ── */}
+      {activeTab==='kpi' && (
+        <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{fontSize:12,color:'#94a3b8',fontWeight:600,marginBottom:2}}>{kpiSignals.length} auto-generated signals from earnings entries</div>
+          {kpiSignals.map(s=>(
+            <div key={s.id} style={{background:kpiBg[s.category]||'#f8fafc',border:`1px solid ${kpiBdr[s.category]||'#e2e8f0'}`,borderRadius:12,padding:'10px 12px',display:'flex',alignItems:'center',gap:10}}>
+              <div style={{width:30,height:30,borderRadius:8,background:s.peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:11,flexShrink:0}}>{(s.peer.initials||'?')[0]}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2,flexWrap:'wrap'}}>
+                  <span style={{fontSize:11,fontWeight:700,color:kpiClr[s.category]||'#64748b',background:'white',padding:'1px 7px',borderRadius:10,border:`1px solid ${kpiBdr[s.category]||'#e2e8f0'}`}}>{s.label}</span>
+                  <span style={{fontSize:11,color:'#94a3b8'}}>{s.peer.flag} {s.peer.ticker} · {s.q}</span>
+                </div>
+                <div style={{fontSize:13,fontWeight:600,color:'#1f2937'}}>{s.value}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
