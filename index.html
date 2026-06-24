@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peer Earnings Intelligence — Halyk Bank IR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { 50:'#f0f4ff', 100:'#dce6ff', 200:'#b8cbff', 500:'#3b5fa0', 600:'#1B3A6B', 700:'#162f58', 800:'#112545', 900:'#0c1b33' }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .tab-btn { padding: 10px 16px; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; color: #64748b; cursor: pointer; white-space: nowrap; transition: all .15s; }
+    .tab-btn:hover { color: #1B3A6B; }
+    .tab-btn.active { border-bottom-color: #1B3A6B; color: #1B3A6B; font-weight: 600; }
+    .card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .kpi-up { color: #16a34a; }
+    .kpi-down { color: #dc2626; }
+    .kpi-neutral { color: #64748b; }
+    textarea { resize: vertical; }
+    .concern-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+    @media print { .no-print { display: none !important; } }
+    .animate-spin { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: white; border-radius: 12px; width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; }
+    .prose { line-height: 1.7; color: #374151; }
+    input[type=text], input[type=password], select, textarea {
+      width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; font-size: 14px; outline: none;
+    }
+    input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: #1B3A6B; box-shadow: 0 0 0 3px rgba(27,58,107,.1); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; }
+    .btn-primary { background: #1B3A6B; color: white; }
+    .btn-primary:hover { background: #162f58; }
+    .btn-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .btn-secondary:hover { background: #f8fafc; }
+    .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-sm { padding: 5px 10px; font-size: 13px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+<div id="root"></div>
+
+<script type="text/x-jsx" id="app-src">
+/* @jsx React.createElement */
+const { useState, useEffect, useContext, createContext, useRef, useCallback, useMemo, useReducer } = React;
+
+// ──────────────────────────────────────────────
+// CONSTANTS
+// ──────────────────────────────────────────────
+const KPI_DEFS = [
+  { key:'nim',          label:'NIM',            unit:'%',   hib:true,  desc:'Net Interest Margin' },
+  { key:'roe',          label:'RoE',            unit:'%',   hib:true,  desc:'Return on Equity' },
+  { key:'roa',          label:'RoA',            unit:'%',   hib:true,  desc:'Return on Assets' },
+  { key:'costToIncome', label:'Cost-to-Income', unit:'%',   hib:false, desc:'Cost-to-Income Ratio' },
+  { key:'nplRatio',     label:'NPL Ratio',      unit:'%',   hib:false, desc:'Non-Performing Loan Ratio' },
+  { key:'cet1',         label:'CET1',           unit:'%',   hib:true,  desc:'Common Equity Tier 1' },
+  { key:'loanGrowth',   label:'Loan Growth',    unit:'%',   hib:true,  desc:'Year-over-Year Loan Growth' },
+  { key:'netIncome',    label:'Net Income',     unit:'',    hib:true,  desc:'Net Income' },
+];
+
+const QUARTER_ORDER = { Q1:1, Q2:2, Q3:3, Q4:4 };
+const PEER_COLORS = ['#E63946','#2563EB','#0EA5E9','#16A34A','#9333EA','#F59E0B','#64748B'];
+const REGIONS = ['All Regions','Kazakhstan','Georgia','Russia','CEE/CIS'];
+
+// ──────────────────────────────────────────────
+// SAMPLE DATA
+// ──────────────────────────────────────────────
+const DEFAULT_PEERS = [
+  { id:'kaspi', name:'Kaspi Bank',        region:'Kazakhstan', initials:'KB',  color:'#E63946' },
+  { id:'tbc',   name:'TBC Bank',          region:'Georgia',    initials:'TBC', color:'#2563EB' },
+  { id:'bog',   name:'Bank of Georgia',   region:'Georgia',    initials:'BoG', color:'#0EA5E9' },
+  { id:'sber',  name:'Sberbank',          region:'Russia',     initials:'SB',  color:'#16A34A' },
+];
+
+function makeE(peerId, q, y, d) {
+  return { id:`${peerId}-${q}-${y}`, peerId, quarter:q, year:y, ...d, status:'final', createdAt:Date.now() };
+}
+
+const SAMPLE_ENTRIES = [
+  makeE('kaspi','Q3',2025,{
+    headlineTakeaway:'Record profitability with NIM expansion and strong digital ecosystem growth.',
+    earningsSummary:[
+      'Record quarterly net income KZT 415bn (+22% YoY), driven by marketplace and fintech segments.',
+      'Net interest margin expanded 120bps YoY to 18.1% on favorable deposit mix and repricing.',
+      'Active customer base reached 13.8mn (+18% YoY); monthly app engagement at 74%.',
+      'Marketplace GMV grew 31% YoY to KZT 2.1 trillion, maintaining dominant e-commerce position.',
+      'Cost-to-income ratio improved to 24.5%, among best-in-class regionally.',
+    ],
+    kpis:{ nim:{v:18.1,qoq:+0.2,yoy:+1.2}, roe:{v:54.3,qoq:-0.5,yoy:+3.1}, roa:{v:6.7,qoq:+0.1,yoy:+0.4}, costToIncome:{v:24.5,qoq:-0.3,yoy:-2.2}, nplRatio:{v:3.3,qoq:+0.1,yoy:-0.6}, cet1:{v:21.9,qoq:+0.4,yoy:+1.5}, loanGrowth:{v:26.2,qoq:null,yoy:+26.2}, netIncome:{v:415,qoq:+6.4,yoy:+22.0,label:'KZT 415bn'} },
+    strategyGuidance:'Management reaffirmed full-year NIM guidance of 17.5–18.5% and loan growth of 25–30%. Focus on expanding the payments infrastructure across Central Asia and deepening the marketplace ecosystem. Capital return policy unchanged at 50% dividend payout ratio.',
+    qaSummary:'Analysts focused on sustainability of NIM at elevated levels given NBK rate outlook. Management noted structural advantages from deposit franchise. Questions on Kaspi\'s international expansion into Türkiye and Azerbaijan generated significant discussion. Credit quality probed on SME segment — management guided stable NPL through year-end.',
+    investorConcerns:['Sustainability of NIM above 18% if NBK cuts rates in 2026','Execution risk on international expansion (Türkiye, Azerbaijan)','Concentration in consumer lending amid rising household leverage','Regulatory risk around digital payment monopoly position','Dividend capacity as growth requires ongoing reinvestment'],
+  }),
+  makeE('kaspi','Q4',2025,{
+    headlineTakeaway:'Full-year NIM beat guidance; strong capital build and accelerating international expansion.',
+    earningsSummary:[
+      'FY2025 net income KZT 1,678bn (+24% YoY); Q4 net income KZT 438bn (+5.5% QoQ).',
+      'NIM reached 18.4% in Q4, beating top of guidance range on continued deposit repricing.',
+      'CET1 strengthened to 22.4%, providing ample buffer for growth and distributions.',
+      'Türkiye JV processed first transactions; management flagged Q2 2026 for scaled launch.',
+      'FY2026 guidance: loan growth 22–27%, NIM 17–18%, CTI below 25%.',
+    ],
+    kpis:{ nim:{v:18.4,qoq:+0.3,yoy:+1.5}, roe:{v:55.2,qoq:+0.9,yoy:+3.8}, roa:{v:6.9,qoq:+0.2,yoy:+0.6}, costToIncome:{v:23.8,qoq:-0.7,yoy:-2.8}, nplRatio:{v:3.1,qoq:-0.2,yoy:-0.8}, cet1:{v:22.4,qoq:+0.5,yoy:+1.8}, loanGrowth:{v:28.1,qoq:null,yoy:+28.1}, netIncome:{v:438,qoq:+5.5,yoy:+23.8,label:'KZT 438bn'} },
+    strategyGuidance:'FY2026 guidance: loan growth 22–27%, NIM 17.0–18.0%, CIR below 25%. International expansion on track for Q2 2026 commercial launch in Türkiye. Dividend payout to increase to 55% for FY2025, reflecting capital strength.',
+    qaSummary:'Q&A centered on FY2026 guidance conservatism and rate sensitivity. Management defended NIM guidance as appropriately cautious given NBK easing cycle risk. International expansion timeline and capital deployment were key themes.',
+    investorConcerns:['NIM compression risk in a rate-cutting environment during 2026','International expansion capital requirements and return timeline','Competitive pressure from new digital banks in Kazakhstan','Household debt service capacity given high consumer lending growth','Timing and magnitude of potential NBK rate cuts'],
+  }),
+  makeE('tbc','Q3',2025,{
+    headlineTakeaway:'Strong loan growth acceleration and stable asset quality across Georgian and Uzbek operations.',
+    earningsSummary:[
+      'Net income GEL 371mn (+18% YoY), driven by strong NII and fee income growth.',
+      'Loan book grew 15.3% YoY, with TBC Uzbekistan contributing 2.8pp of group growth.',
+      'Cost-to-income ratio at 38.2%, reflecting investment in digital and Uzbek expansion.',
+      'Asset quality robust: NPL at 2.8%, below guidance of sub-3.5%.',
+      'Digital banking: 82% of transactions digital; TBC app MAU up 24% YoY.',
+    ],
+    kpis:{ nim:{v:8.2,qoq:+0.1,yoy:+0.4}, roe:{v:29.8,qoq:+0.3,yoy:+2.1}, roa:{v:4.1,qoq:0,yoy:+0.3}, costToIncome:{v:38.2,qoq:+0.8,yoy:+1.2}, nplRatio:{v:2.8,qoq:-0.1,yoy:-0.4}, cet1:{v:18.4,qoq:+0.2,yoy:+0.8}, loanGrowth:{v:15.3,qoq:null,yoy:+15.3}, netIncome:{v:371,qoq:+4.2,yoy:+18.0,label:'GEL 371mn'} },
+    strategyGuidance:'Management maintained FY2025 guidance: RoE above 25%, loan growth 15–20%, NIM 8.0–8.5%. TBC Uzbekistan on track to reach profitability by mid-2026. Exploring third market entry in 2026.',
+    qaSummary:'Analysts questioned Uzbekistan profitability timeline and capital requirements. Management provided granular cost breakdown and timeline to break-even. Georgian macro resilience discussed — tourism revenues and remittances remain strong.',
+    investorConcerns:['Uzbekistan expansion: timeline to profitability and capital absorption','CIR rising trend as investment costs increase','Georgian macro sensitivity to regional geopolitical shifts','Competitive dynamics with Liberty Bank and new fintech entrants','FX risk from GEL/USD dynamics affecting reported earnings'],
+  }),
+  makeE('tbc','Q4',2025,{
+    headlineTakeaway:'Uzbekistan turns operationally profitable ahead of schedule; record annual RoE delivered.',
+    earningsSummary:[
+      'Q4 net income GEL 398mn (+7.3% QoQ, +19% YoY); FY2025 net income GEL 1,452mn.',
+      'TBC Uzbekistan achieved operational break-even in December 2025, ahead of schedule.',
+      'NIM improved to 8.5%, above mid-point of guidance, on loan mix shift to higher-yield segments.',
+      'CIR improved to 37.1% — reversal of prior-quarter trend as Uzbek costs stabilized.',
+      'FY2026 guidance: RoE 28–32%, loan growth 18–22%, NIM 8.5–9.0%.',
+    ],
+    kpis:{ nim:{v:8.5,qoq:+0.3,yoy:+0.6}, roe:{v:31.2,qoq:+1.4,yoy:+3.2}, roa:{v:4.3,qoq:+0.2,yoy:+0.5}, costToIncome:{v:37.1,qoq:-1.1,yoy:+0.8}, nplRatio:{v:2.6,qoq:-0.2,yoy:-0.6}, cet1:{v:18.9,qoq:+0.5,yoy:+1.2}, loanGrowth:{v:17.2,qoq:null,yoy:+17.2}, netIncome:{v:398,qoq:+7.3,yoy:+19.0,label:'GEL 398mn'} },
+    strategyGuidance:'Management guided FY2026 RoE of 28–32%, an upgrade reflecting Uzbekistan contribution. Third market entry (potentially Azerbaijan or Armenia) flagged for H2 2026. Dividend payout policy unchanged at 30–40% of net income.',
+    qaSummary:'Q&A dominated by Uzbekistan profitability milestone and margin outlook. Management presented detailed Uzbek segment P&L for the first time. Third market speculation discussed — management confirmed active evaluation without naming markets.',
+    investorConcerns:['Uzbekistan scaling beyond break-even and reaching mature return levels','Capital requirements for third market entry alongside growth','NIM sustainability at 8.5–9.0% amid deposit competition','Geopolitical risk exposure given regional tensions','Execution risk on simultaneous multi-market expansion'],
+  }),
+  makeE('bog','Q3',2025,{
+    headlineTakeaway:'Solid results with NIM stability and improving capital position amid resilient domestic macro.',
+    earningsSummary:[
+      'Q3 net income GEL 294mn (+14% YoY), supported by broad-based NII and fee growth.',
+      'NIM stable at 7.4%; funding cost pressures partially offset by loan repricing.',
+      'NPL improved to 3.5% from 3.7% prior quarter — driven by write-offs and legacy resolution.',
+      'CET1 at 16.8%, up 40bps QoQ, reflecting retained earnings and RWA optimization.',
+      'Mortgage and corporate segments showed strongest volume growth; consumer moderated.',
+    ],
+    kpis:{ nim:{v:7.4,qoq:0,yoy:+0.2}, roe:{v:24.9,qoq:+0.3,yoy:+1.8}, roa:{v:3.8,qoq:0,yoy:+0.2}, costToIncome:{v:41.2,qoq:-0.5,yoy:-1.5}, nplRatio:{v:3.5,qoq:-0.2,yoy:-0.7}, cet1:{v:16.8,qoq:+0.4,yoy:+1.1}, loanGrowth:{v:12.1,qoq:null,yoy:+12.1}, netIncome:{v:294,qoq:+3.5,yoy:+14.0,label:'GEL 294mn'} },
+    strategyGuidance:'FY2025 guidance maintained: RoE 22–26%, NIM 7.2–7.6%, loan growth 10–15%. Capital return: 2025 interim dividend announced. Management noted pipeline of mortgage portfolio growth through new partnership channels.',
+    qaSummary:'Analysts focused on NIM trajectory given deposit competition from TBC. Management highlighted sticky corporate deposit base as structural advantage. NPL resolution timeline and capital return pace were also discussed.',
+    investorConcerns:['NIM pressure from intensifying deposit competition with TBC','Slower loan growth versus TBC — potential market share loss','Capital deployment — buyback vs. dividend vs. organic growth','Corporate credit quality in sectors exposed to regional trade disruption','FX sensitivity on USD-denominated loan book'],
+  }),
+  makeE('bog','Q4',2025,{
+    headlineTakeaway:'Closed 2025 ahead of guidance; NIM beat and dividend payout at top of the range.',
+    earningsSummary:[
+      'Q4 net income GEL 320mn (+8.8% QoQ, +16% YoY); FY2025 net income GEL 1,182mn.',
+      'NIM expanded to 7.6% in Q4 — top of guidance range — on improved loan repricing and lower CoF.',
+      'Full-year dividend of GEL 12.50/share, 42% payout ratio.',
+      'Loan growth closed FY2025 at 13.4% YoY, within guidance range.',
+      'FY2026 guidance: RoE 24–28%, NIM 7.5–8.0%, loan growth 12–16%.',
+    ],
+    kpis:{ nim:{v:7.6,qoq:+0.2,yoy:+0.4}, roe:{v:25.8,qoq:+0.9,yoy:+2.1}, roa:{v:3.9,qoq:+0.1,yoy:+0.3}, costToIncome:{v:40.5,qoq:-0.7,yoy:-2.1}, nplRatio:{v:3.3,qoq:-0.2,yoy:-0.9}, cet1:{v:17.2,qoq:+0.4,yoy:+1.5}, loanGrowth:{v:13.4,qoq:null,yoy:+13.4}, netIncome:{v:320,qoq:+8.8,yoy:+16.0,label:'GEL 320mn'} },
+    strategyGuidance:'Management upgraded FY2026 RoE guidance to 24–28%, reflecting NIM improvements and cost discipline. Mortgage growth remains a strategic priority. Exploring SME digital platform launch in H1 2026.',
+    qaSummary:'Q&A focused on NIM upgrade and 2026 sustainability. Management discussed funding cost outlook with NBG rate trajectory. Mortgage growth strategy questioned — management highlighted pipeline partnerships.',
+    investorConcerns:['NIM sustainability at upper end of guidance in rate-cutting scenario','Competitive pressure on deposit rates from TBC and new entrants','Execution on SME digital platform launch','Macro sensitivity to regional risk factors','Capital return policy clarity for 2026'],
+  }),
+  makeE('sber','Q3',2025,{
+    headlineTakeaway:'Mixed quarter: NIM under pressure from funding costs but profit resilient on non-interest income diversification.',
+    earningsSummary:[
+      'Net income RUB 445bn (+6% YoY), supported by fee income offsetting NII compression.',
+      'NIM declined 10bps QoQ to 5.4% — deposit rate competition and higher funding costs.',
+      'Technology and digital initiatives accelerating: SberPay MAU reached 68mn.',
+      'Corporate lending growth 8.4% YoY; retail growth moderated to 4.2%.',
+      'CET1 at 14.8%, above regulatory minimum; management not guiding capital distribution.',
+    ],
+    kpis:{ nim:{v:5.4,qoq:-0.1,yoy:-0.3}, roe:{v:23.8,qoq:-0.4,yoy:-0.9}, roa:{v:3.2,qoq:-0.1,yoy:-0.2}, costToIncome:{v:35.4,qoq:+0.6,yoy:+1.2}, nplRatio:{v:4.2,qoq:+0.1,yoy:+0.3}, cet1:{v:14.8,qoq:+0.2,yoy:+0.5}, loanGrowth:{v:8.4,qoq:null,yoy:+8.4}, netIncome:{v:445,qoq:-1.8,yoy:+6.0,label:'RUB 445bn'} },
+    strategyGuidance:'Management guided NIM stabilization by year-end as CBR rate cycle peaks. Corporate lending pipeline remains strong; retail to remain cautious. No guidance on capital return given macro uncertainty.',
+    qaSummary:'Investors focused heavily on NIM outlook in a high-rate environment and timeline to stabilization. Corporate credit quality discussed — management flagged close monitoring of sanctioned-sector exposures. Technology monetization strategy updated.',
+    investorConcerns:['NIM trajectory in prolonged high-rate environment','Sanction exposure impact on international business and capital','Corporate credit quality in challenged sectors','Capital return — dividend vs. buyback under regulatory uncertainty','Technology segment monetization and profitability timeline'],
+  }),
+  makeE('sber','Q4',2025,{
+    headlineTakeaway:'NIM stabilization confirmed; year-end capital strong despite challenging macro backdrop.',
+    earningsSummary:[
+      'Q4 net income RUB 468bn (+5.2% QoQ, +7% YoY); FY2025 net income RUB 1,748bn.',
+      'NIM recovered to 5.6% in Q4 as CBR signals rate peak — deposit repricing beneficial.',
+      'NPL improved to 4.0% — legacy resolution and write-off activity in Q4.',
+      'CET1 at 15.2%, reflecting retained earnings; board to discuss capital policy Q1 2026.',
+      'Digital ecosystem: 285mn active users across all platforms.',
+    ],
+    kpis:{ nim:{v:5.6,qoq:+0.2,yoy:+0.0}, roe:{v:24.5,qoq:+0.7,yoy:-0.5}, roa:{v:3.3,qoq:+0.1,yoy:0}, costToIncome:{v:34.9,qoq:-0.5,yoy:+0.8}, nplRatio:{v:4.0,qoq:-0.2,yoy:+0.1}, cet1:{v:15.2,qoq:+0.4,yoy:+0.9}, loanGrowth:{v:9.1,qoq:null,yoy:+9.1}, netIncome:{v:468,qoq:+5.2,yoy:+7.0,label:'RUB 468bn'} },
+    strategyGuidance:'Management guides FY2026 net income growth of 5–10% YoY; NIM expected to expand 20–40bps as rate cycle turns. Capital policy to be announced Q1 2026. Continued investment in AI and digital ecosystem.',
+    qaSummary:'Q&A on capital return policy was the dominant theme — management committed to Q1 2026 announcement. NIM outlook discussion constructive. Questions on geopolitical risk and new Western measures; management provided prepared but limited response.',
+    investorConcerns:['Capital return policy clarity and magnitude of FY2025 dividend','Geopolitical risk and potential further sanctions','NIM recovery pace as CBR begins easing cycle','Corporate credit cycle risks in 2026','AI/technology investment ROI and monetization path'],
+  }),
+];
+
+// ──────────────────────────────────────────────
+// CONTEXT
+// ──────────────────────────────────────────────
+const AppCtx = createContext(null);
+
+function useLocalStorage(key, def) {
+  const [v, setV] = useState(() => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : def; } catch { return def; } });
+  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }, [key, v]);
+  return [v, setV];
+}
+
+function AppProvider({ children }) {
+  const [peers, setPeers] = useLocalStorage('peers_v1', DEFAULT_PEERS);
+  const [entries, setEntries] = useLocalStorage('entries_v1', SAMPLE_ENTRIES);
+  const [apiKey, setApiKey] = useLocalStorage('api_key', '');
+
+  const addPeer = useCallback((p) => setPeers(ps => [...ps, { ...p, id: Date.now().toString(), color: PEER_COLORS[ps.length % PEER_COLORS.length] }]), []);
+  const removePeer = useCallback((id) => { setPeers(ps => ps.filter(p => p.id !== id)); setEntries(es => es.filter(e => e.peerId !== id)); }, []);
+  const updatePeer = useCallback((id, data) => setPeers(ps => ps.map(p => p.id === id ? { ...p, ...data } : p)), []);
+
+  const saveEntry = useCallback((entry) => {
+    setEntries(es => {
+      const idx = es.findIndex(e => e.id === entry.id);
+      if (idx >= 0) { const next = [...es]; next[idx] = entry; return next; }
+      return [...es, entry];
+    });
+  }, []);
+  const deleteEntry = useCallback((id) => setEntries(es => es.filter(e => e.id !== id)), []);
+
+  const getLatestEntry = useCallback((peerId) => {
+    const peerEntries = entries.filter(e => e.peerId === peerId).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      return QUARTER_ORDER[b.quarter] - QUARTER_ORDER[a.quarter];
+    });
+    return peerEntries[0] || null;
+  }, [entries]);
+
+  const getPeerEntries = useCallback((peerId) => {
+    return entries.filter(e => e.peerId === peerId).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      return QUARTER_ORDER[b.quarter] - QUARTER_ORDER[a.quarter];
+    });
+  }, [entries]);
+
+  const allQuarters = useMemo(() => {
+    const set = new Set(entries.map(e => `${e.year}-${e.quarter}`));
+    return [...set].sort((a, b) => {
+      const [ay, aq] = a.split('-'); const [by, bq] = b.split('-');
+      if (ay !== by) return by - ay;
+      return QUARTER_ORDER[bq] - QUARTER_ORDER[aq];
+    }).map(k => { const [y, q] = k.split('-'); return { year: parseInt(y), quarter: q }; });
+  }, [entries]);
+
+  return (
+    <AppCtx.Provider value={{ peers, setPeers, entries, apiKey, setApiKey, addPeer, removePeer, updatePeer, saveEntry, deleteEntry, getLatestEntry, getPeerEntries, allQuarters }}>
+      {children}
+    </AppCtx.Provider>
+  );
+}
+
+// ──────────────────────────────────────────────
+// UTILITIES
+// ──────────────────────────────────────────────
+function fmtKPI(kpi, def) {
+  if (!kpi || kpi.v === null || kpi.v === undefined) return { val: '—', up: null, dn: null };
+  const val = def.unit === '%' ? `${kpi.v.toFixed(1)}%` : (kpi.label ? kpi.label : kpi.v.toLocaleString());
+  return { val };
+}
+
+function ChangeChip({ change, hib, size = 'sm' }) {
+  if (change === null || change === undefined) return null;
+  if (change === 0) return <span className="kpi-neutral text-xs">0pp</span>;
+  const isGood = hib ? change > 0 : change < 0;
+  const sign = change > 0 ? '+' : '';
+  const cls = isGood ? 'kpi-up' : 'kpi-down';
+  const arrow = change > 0 ? '↑' : '↓';
+  return <span className={`${cls} text-xs font-medium`}>{arrow} {sign}{Math.abs(change).toFixed(1)}pp</span>;
+}
+
+function StatusDot({ entry }) {
+  if (!entry) return <span className="tag bg-slate-100 text-slate-500">No data</span>;
+  const qoq = entry.kpis?.netIncome?.qoq;
+  if (qoq === null || qoq === undefined) return <span className="tag bg-slate-100 text-slate-500">—</span>;
+  if (qoq > 0) return <span className="tag bg-green-50 text-green-700">↑ Net Income</span>;
+  if (qoq < 0) return <span className="tag bg-red-50 text-red-700">↓ Net Income</span>;
+  return <span className="tag bg-slate-100 text-slate-500">→ Flat</span>;
+}
+
+// ──────────────────────────────────────────────
+// ICONS (inline SVG)
+// ──────────────────────────────────────────────
+const Icons = {
+  Dashboard: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+  Compare: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  Settings: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Edit: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+  Star: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  X: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  ChevronDown: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>,
+  AI: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>,
+  Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>,
+  Spinner: () => <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>,
+};
+
+// ──────────────────────────────────────────────
+// HEADER
+// ──────────────────────────────────────────────
+function Header({ view, setView, onSettings }) {
+  const navItems = [
+    { id:'dashboard', label:'Dashboard', Icon: Icons.Dashboard },
+    { id:'compare',   label:'Compare',   Icon: Icons.Compare },
+    { id:'search',    label:'Search',    Icon: Icons.Search },
+  ];
+  return (
+    <header className="bg-navy-600 text-white no-print" style={{background:'#1B3A6B'}}>
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 bg-yellow-400 rounded flex items-center justify-center text-navy-800 font-bold text-sm" style={{color:'#1B3A6B'}}>H</div>
+          <div>
+            <span className="font-semibold text-sm tracking-wide">Peer Earnings Intelligence</span>
+            <span className="text-blue-300 text-xs ml-2">Halyk Bank IR</span>
+          </div>
+        </div>
+        <nav className="flex items-center gap-1">
+          {navItems.map(({ id, label, Icon }) => (
+            <button key={id} onClick={() => setView(id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${view === id ? 'bg-white/20 text-white' : 'text-blue-200 hover:text-white hover:bg-white/10'}`}>
+              <Icon />{label}
+            </button>
+          ))}
+          <button onClick={onSettings} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium text-blue-200 hover:text-white hover:bg-white/10 transition-colors">
+            <Icons.Settings />Settings
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+// ──────────────────────────────────────────────
+// PEER CARD
+// ──────────────────────────────────────────────
+function PeerCard({ peer, entry, onView, onAddEntry }) {
+  const kpi = entry?.kpis?.netIncome;
+  return (
+    <div className="card p-5 flex flex-col gap-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+            style={{ background: peer.color }}>
+            {peer.initials}
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">{peer.name}</h3>
+            <span className="text-xs text-gray-500">{peer.region}</span>
+          </div>
+        </div>
+        <StatusDot entry={entry} />
+      </div>
+
+      {entry ? (
+        <>
+          <div>
+            <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">{entry.quarter} {entry.year}</div>
+            <p className="text-sm text-gray-700 leading-snug">{entry.headlineTakeaway}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-gray-100">
+            {['nim','roe','nplRatio'].map(k => {
+              const def = KPI_DEFS.find(d => d.key === k);
+              const kd = entry.kpis?.[k];
+              return (
+                <div key={k} className="text-center">
+                  <div className="text-xs text-gray-400">{def.label}</div>
+                  <div className="text-sm font-semibold text-gray-800">{kd?.v != null ? `${kd.v.toFixed(1)}%` : '—'}</div>
+                  {kd?.qoq != null && <ChangeChip change={kd.qoq} hib={def.hib} />}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <div className="text-sm text-gray-400 italic text-center py-2">No entries yet</div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <button className="btn btn-primary btn-sm flex-1" onClick={() => onView(peer.id)}>
+          View Details
+        </button>
+        <button className="btn btn-secondary btn-sm" onClick={() => onAddEntry(peer.id)} title="Add entry">
+          <Icons.Plus />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// DASHBOARD VIEW
+// ──────────────────────────────────────────────
+function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
+  const { peers, getLatestEntry, allQuarters } = useContext(AppCtx);
+  const [filterRegion, setFilterRegion] = useState('All Regions');
+  const [filterQuarter, setFilterQuarter] = useState('');
+
+  const filteredPeers = useMemo(() => peers.filter(p =>
+    filterRegion === 'All Regions' || p.region === filterRegion
+  ), [peers, filterRegion]);
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Peer Bank Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Latest quarterly results across tracked peers</p>
+        </div>
+        <div className="flex gap-2">
+          <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
+            {REGIONS.map(r => <option key={r}>{r}</option>)}
+          </select>
+          <button className="btn btn-primary" onClick={() => openAddEntry(null)}>
+            <Icons.Plus />Add Entry
+          </button>
+        </div>
+      </div>
+
+      {filteredPeers.length === 0 ? (
+        <div className="card p-12 text-center text-gray-400">
+          <p className="text-lg mb-2">No peers found</p>
+          <p className="text-sm">Add peers in Settings to get started.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4" style={{ gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))' }}>
+          {filteredPeers.map(peer => (
+            <PeerCard
+              key={peer.id}
+              peer={peer}
+              entry={getLatestEntry(peer.id)}
+              onView={(id) => { setSelectedPeer(id); setView('peer-detail'); }}
+              onAddEntry={(id) => openAddEntry(id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {allQuarters.length > 0 && (
+        <div className="mt-8 card p-4">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Coverage Summary</div>
+          <div className="flex flex-wrap gap-2">
+            {allQuarters.slice(0, 8).map(({ quarter, year }) => {
+              const { entries } = useContext(AppCtx);
+              const count = entries.filter(e => e.quarter === quarter && e.year === year).length;
+              return (
+                <div key={`${year}-${quarter}`} className="text-center px-3 py-2 bg-slate-50 rounded-md border border-slate-200">
+                  <div className="text-xs font-semibold text-gray-700">{quarter} {year}</div>
+                  <div className="text-xs text-gray-400">{count} peer{count !== 1 ? 's' : ''}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// KPI TABLE
+// ──────────────────────────────────────────────
+function KPITable({ kpis, editing, onChange }) {
+  if (!kpis) return null;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-200">
+            <th className="text-left py-2.5 pr-4 font-medium text-gray-500 text-xs uppercase tracking-wide w-40">Metric</th>
+            <th className="text-right py-2.5 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide">Value</th>
+            <th className="text-right py-2.5 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide">QoQ</th>
+            <th className="text-right py-2.5 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide">YoY</th>
+            {editing && <th className="w-4"></th>}
+          </tr>
+        </thead>
+        <tbody>
+          {KPI_DEFS.map((def, i) => {
+            const k = kpis[def.key] || {};
+            return (
+              <tr key={def.key} className={`border-b border-gray-50 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                <td className="py-3 pr-4">
+                  <div className="font-medium text-gray-800">{def.label}</div>
+                  <div className="text-xs text-gray-400">{def.desc}</div>
+                </td>
+                <td className="text-right py-3 px-3 font-semibold text-gray-900">
+                  {editing ? (
+                    <input type="text" style={{width:'80px',textAlign:'right'}} value={k.v ?? ''} placeholder="—"
+                      onChange={e => onChange(def.key, 'v', e.target.value === '' ? null : parseFloat(e.target.value))} />
+                  ) : (
+                    k.v != null ? (def.unit === '%' ? `${k.v.toFixed(1)}%` : (k.label || k.v.toLocaleString())) : '—'
+                  )}
+                </td>
+                <td className="text-right py-3 px-3">
+                  {editing ? (
+                    <input type="text" style={{width:'70px',textAlign:'right'}} value={k.qoq ?? ''} placeholder="—"
+                      onChange={e => onChange(def.key, 'qoq', e.target.value === '' ? null : parseFloat(e.target.value))} />
+                  ) : (
+                    k.qoq != null ? <ChangeChip change={k.qoq} hib={def.hib} /> : <span className="text-gray-300">—</span>
+                  )}
+                </td>
+                <td className="text-right py-3 px-3">
+                  {editing ? (
+                    <input type="text" style={{width:'70px',textAlign:'right'}} value={k.yoy ?? ''} placeholder="—"
+                      onChange={e => onChange(def.key, 'yoy', e.target.value === '' ? null : parseFloat(e.target.value))} />
+                  ) : (
+                    k.yoy != null ? <ChangeChip change={k.yoy} hib={def.hib} /> : <span className="text-gray-300">—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// PEER DETAIL VIEW
+// ──────────────────────────────────────────────
+function PeerDetailView({ peerId, setView, openAddEntry }) {
+  const { peers, getPeerEntries, saveEntry, deleteEntry } = useContext(AppCtx);
+  const peer = peers.find(p => p.id === peerId);
+  const allEntries = getPeerEntries(peerId);
+  const [selectedEntryId, setSelectedEntryId] = useState(allEntries[0]?.id || null);
+  const [activeTab, setActiveTab] = useState('summary');
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(null);
+
+  const entry = allEntries.find(e => e.id === selectedEntryId) || allEntries[0];
+
+  useEffect(() => { if (entry) setDraft(JSON.parse(JSON.stringify(entry))); }, [selectedEntryId]);
+
+  if (!peer) return <div className="p-8 text-gray-500">Peer not found.</div>;
+
+  const tabs = [
+    { id:'summary',  label:'Earnings Summary' },
+    { id:'kpis',     label:'KPI Table' },
+    { id:'strategy', label:'Strategy & Guidance' },
+    { id:'qa',       label:'Q&A Summary' },
+    { id:'concerns', label:'Investor Concerns' },
+  ];
+
+  function handleKPIChange(key, field, val) {
+    setDraft(d => ({ ...d, kpis: { ...d.kpis, [key]: { ...(d.kpis[key] || {}), [field]: val } } }));
+  }
+
+  function handleSave() {
+    saveEntry(draft);
+    setEditing(false);
+  }
+
+  function handleDelete() {
+    if (confirm(`Delete ${entry.quarter} ${entry.year} entry for ${peer.name}?`)) {
+      deleteEntry(entry.id);
+      const remaining = allEntries.filter(e => e.id !== entry.id);
+      setSelectedEntryId(remaining[0]?.id || null);
+    }
+  }
+
+  const current = editing ? draft : entry;
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 no-print">
+        <button onClick={() => setView('dashboard')} className="hover:text-navy-600 hover:underline" style={{color:'inherit'}}>Dashboard</button>
+        <span>/</span>
+        <span className="text-gray-900 font-medium">{peer.name}</span>
+      </div>
+
+      {/* Peer Header */}
+      <div className="card p-5 mb-5 flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background: peer.color}}>
+            {peer.initials}
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">{peer.name}</h1>
+            <span className="text-sm text-gray-500">{peer.region}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 no-print">
+          {/* Quarter selector */}
+          <select value={selectedEntryId || ''} onChange={e => { setSelectedEntryId(e.target.value); setEditing(false); }}
+            className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
+            {allEntries.map(e => <option key={e.id} value={e.id}>{e.quarter} {e.year}</option>)}
+          </select>
+          {!editing ? (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setEditing(true); setDraft(JSON.parse(JSON.stringify(entry))); }}>
+                <Icons.Edit />Edit
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => openAddEntry(peerId)} title="Add new quarter">
+                <Icons.Plus />New Quarter
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
+                <Icons.Print />Print
+              </button>
+              {entry && <button className="btn btn-danger btn-sm" onClick={handleDelete}><Icons.Trash /></button>}
+            </>
+          ) : (
+            <>
+              <button className="btn btn-primary btn-sm" onClick={handleSave}>Save</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setEditing(false)}>Cancel</button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {!entry ? (
+        <div className="card p-12 text-center">
+          <p className="text-gray-400 mb-4">No entries for this bank yet.</p>
+          <button className="btn btn-primary" onClick={() => openAddEntry(peerId)}><Icons.Plus />Add First Entry</button>
+        </div>
+      ) : (
+        <>
+          {/* Tabs */}
+          <div className="card mb-5 overflow-hidden">
+            <div className="flex border-b border-gray-200 overflow-x-auto no-print px-1">
+              {tabs.map(t => (
+                <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6">
+              {/* Summary */}
+              {activeTab === 'summary' && (
+                <div>
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Headline Takeaway</label>
+                    {editing ? (
+                      <input type="text" value={current.headlineTakeaway || ''} onChange={e => setDraft(d => ({...d, headlineTakeaway: e.target.value}))} />
+                    ) : (
+                      <p className="text-gray-800 font-medium">{current.headlineTakeaway}</p>
+                    )}
+                  </div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Key Points</label>
+                  {editing ? (
+                    <div className="space-y-2">
+                      {(current.earningsSummary || []).map((b, i) => (
+                        <div key={i} className="flex gap-2">
+                          <input type="text" value={b} onChange={e => { const a = [...current.earningsSummary]; a[i] = e.target.value; setDraft(d => ({...d, earningsSummary: a})); }} />
+                          <button className="btn btn-secondary btn-sm" onClick={() => { const a = current.earningsSummary.filter((_,j) => j !== i); setDraft(d => ({...d, earningsSummary: a})); }}><Icons.X /></button>
+                        </div>
+                      ))}
+                      <button className="btn btn-secondary btn-sm" onClick={() => setDraft(d => ({...d, earningsSummary: [...(d.earningsSummary||[]), '']}))}>
+                        <Icons.Plus />Add bullet
+                      </button>
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {(current.earningsSummary || []).map((b, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-gray-700">
+                          <span className="text-navy-600 font-bold mt-0.5 flex-shrink-0" style={{color:'#1B3A6B'}}>•</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {/* KPIs */}
+              {activeTab === 'kpis' && (
+                <KPITable kpis={current.kpis} editing={editing} onChange={handleKPIChange} />
+              )}
+
+              {/* Strategy */}
+              {activeTab === 'strategy' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Management Commentary & Guidance</label>
+                  {editing ? (
+                    <textarea rows={6} value={current.strategyGuidance || ''} onChange={e => setDraft(d => ({...d, strategyGuidance: e.target.value}))} />
+                  ) : (
+                    <p className="prose text-sm">{current.strategyGuidance}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Q&A */}
+              {activeTab === 'qa' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Q&A Themes & Analyst Topics</label>
+                  {editing ? (
+                    <textarea rows={6} value={current.qaSummary || ''} onChange={e => setDraft(d => ({...d, qaSummary: e.target.value}))} />
+                  ) : (
+                    <p className="prose text-sm">{current.qaSummary}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Concerns */}
+              {activeTab === 'concerns' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Key Investor & Analyst Concerns</label>
+                  {editing ? (
+                    <div className="space-y-2">
+                      {(current.investorConcerns || []).map((c, i) => (
+                        <div key={i} className="flex gap-2">
+                          <input type="text" value={c} onChange={e => { const a = [...current.investorConcerns]; a[i] = e.target.value; setDraft(d => ({...d, investorConcerns: a})); }} />
+                          <button className="btn btn-secondary btn-sm" onClick={() => { const a = current.investorConcerns.filter((_,j) => j !== i); setDraft(d => ({...d, investorConcerns: a})); }}><Icons.X /></button>
+                        </div>
+                      ))}
+                      <button className="btn btn-secondary btn-sm" onClick={() => setDraft(d => ({...d, investorConcerns: [...(d.investorConcerns||[]), '']}))}>
+                        <Icons.Plus />Add concern
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(current.investorConcerns || []).map((c, i) => (
+                        <div key={i} className="concern-badge">
+                          <Icons.Star />{c}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* History strip */}
+          {allEntries.length > 1 && (
+            <div className="card p-4 no-print">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Historical Entries</div>
+              <div className="flex flex-wrap gap-2">
+                {allEntries.map(e => (
+                  <button key={e.id} onClick={() => { setSelectedEntryId(e.id); setEditing(false); }}
+                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors border ${e.id === selectedEntryId ? 'bg-navy-600 text-white border-navy-600' : 'bg-white text-gray-600 border-gray-200 hover:border-navy-500'}`}
+                    style={e.id === selectedEntryId ? {background:'#1B3A6B', color:'white'} : {}}>
+                    {e.quarter} {e.year}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// TREND CHART (Chart.js)
+// ──────────────────────────────────────────────
+function TrendChart({ peers, entries, selectedKPI, quarters }) {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const def = KPI_DEFS.find(d => d.key === selectedKPI);
+    const labels = [...quarters].reverse().map(({ quarter, year }) => `${quarter} ${year}`);
+
+    const datasets = peers.map(peer => {
+      const data = [...quarters].reverse().map(({ quarter, year }) => {
+        const e = entries.find(e => e.peerId === peer.id && e.quarter === quarter && e.year === year);
+        return e?.kpis?.[selectedKPI]?.v ?? null;
+      });
+      return {
+        label: peer.name,
+        data,
+        borderColor: peer.color,
+        backgroundColor: peer.color + '22',
+        pointBackgroundColor: peer.color,
+        tension: 0.3,
+        spanGaps: true,
+      };
+    });
+
+    if (chartRef.current) { chartRef.current.destroy(); }
+    chartRef.current = new Chart(canvasRef.current, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 12 } },
+          tooltip: { mode: 'index', intersect: false },
+          title: { display: true, text: `${def?.desc || selectedKPI} (%)`, color: '#374151', font: { size: 13, weight: '500' } },
+        },
+        scales: {
+          y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, callback: v => `${v}${def?.unit || ''}` } },
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        },
+        interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      }
+    });
+    return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
+  }, [peers, entries, selectedKPI, quarters]);
+
+  return <div style={{ height: '280px' }}><canvas ref={canvasRef}></canvas></div>;
+}
+
+// ──────────────────────────────────────────────
+// COMPARISON VIEW
+// ──────────────────────────────────────────────
+function ComparisonView() {
+  const { peers, entries, allQuarters } = useContext(AppCtx);
+  const [selectedQ, setSelectedQ] = useState(allQuarters[0] ? `${allQuarters[0].year}-${allQuarters[0].quarter}` : '');
+  const [chartKPI, setChartKPI] = useState('roe');
+  const [activeTab, setActiveTab] = useState('table');
+
+  const qEntry = useMemo(() => {
+    if (!selectedQ) return null;
+    const [year, quarter] = selectedQ.split('-');
+    return { year: parseInt(year), quarter };
+  }, [selectedQ]);
+
+  const peerEntries = useMemo(() => {
+    if (!qEntry) return {};
+    const map = {};
+    peers.forEach(p => {
+      map[p.id] = entries.find(e => e.peerId === p.id && e.quarter === qEntry.quarter && e.year === qEntry.year) || null;
+    });
+    return map;
+  }, [peers, entries, qEntry]);
+
+  const allConcerns = useMemo(() => {
+    const all = [];
+    peers.forEach(p => {
+      const e = peerEntries[p.id];
+      if (e?.investorConcerns) e.investorConcerns.forEach(c => all.push({ concern: c, peer: p }));
+    });
+    return all;
+  }, [peers, peerEntries]);
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Cross-Peer Comparison</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Side-by-side KPI benchmarking across all tracked banks</p>
+        </div>
+        <select value={selectedQ} onChange={e => setSelectedQ(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
+          {allQuarters.map(({ year, quarter }) => (
+            <option key={`${year}-${quarter}`} value={`${year}-${quarter}`}>{quarter} {year}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex gap-2 mb-4 border-b border-gray-200 no-print">
+        {['table','chart','concerns'].map(t => (
+          <button key={t} className={`tab-btn ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
+            {t === 'table' ? 'KPI Comparison' : t === 'chart' ? 'Trend Chart' : 'Investor Concerns'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'table' && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead style={{background:'#f8fafc'}}>
+                <tr>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200 w-36">Metric</th>
+                  {peers.map(p => (
+                    <th key={p.id} className="text-center py-3 px-3 border-b border-gray-200 min-w-28">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{background: p.color}}></div>
+                        <span className="font-semibold text-gray-800 text-xs">{p.name.replace(' Bank','')}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {KPI_DEFS.map((def, i) => (
+                  <tr key={def.key} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      <div className="font-medium text-gray-800 text-xs">{def.label}</div>
+                    </td>
+                    {peers.map(p => {
+                      const e = peerEntries[p.id];
+                      const k = e?.kpis?.[def.key];
+                      if (!e || !k || k.v == null) return <td key={p.id} className="text-center py-3 px-3 border-b border-gray-50 text-gray-300 text-sm">—</td>;
+                      return (
+                        <td key={p.id} className="text-center py-3 px-3 border-b border-gray-50">
+                          <div className="font-semibold text-gray-900">{def.unit === '%' ? `${k.v.toFixed(1)}%` : (k.label || k.v)}</div>
+                          {k.qoq != null && <ChangeChip change={k.qoq} hib={def.hib} />}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'chart' && (
+        <div className="card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <label className="text-sm font-medium text-gray-700">KPI to chart:</label>
+            <select value={chartKPI} onChange={e => setChartKPI(e.target.value)} className="text-sm py-1.5 px-3 w-auto" style={{width:'auto'}}>
+              {KPI_DEFS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
+            </select>
+          </div>
+          <TrendChart peers={peers} entries={entries} selectedKPI={chartKPI} quarters={allQuarters} />
+        </div>
+      )}
+
+      {activeTab === 'concerns' && (
+        <div className="card p-5">
+          <div className="text-sm font-medium text-gray-700 mb-1">Aggregated Investor Concerns — {qEntry?.quarter} {qEntry?.year}</div>
+          <p className="text-xs text-gray-400 mb-4">Concerns raised by analysts across all peer earnings calls this quarter</p>
+          {allConcerns.length === 0 ? (
+            <p className="text-gray-400 text-sm">No data for this quarter.</p>
+          ) : (
+            <div className="space-y-2">
+              {allConcerns.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <div className="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center text-white text-xs font-bold mt-0.5" style={{background: item.peer.color}}>
+                    {item.peer.initials[0]}
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-gray-500">{item.peer.name}</span>
+                    <p className="text-sm text-gray-800">{item.concern}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// SEARCH VIEW
+// ──────────────────────────────────────────────
+function SearchView({ setView, setSelectedPeer }) {
+  const { peers, entries } = useContext(AppCtx);
+  const [q, setQ] = useState('');
+
+  const results = useMemo(() => {
+    if (!q.trim() || q.length < 2) return [];
+    const lq = q.toLowerCase();
+    const hits = [];
+    entries.forEach(e => {
+      const peer = peers.find(p => p.id === e.peerId);
+      if (!peer) return;
+      const fields = [
+        { label:'Headline', text: e.headlineTakeaway },
+        { label:'Summary', text: (e.earningsSummary || []).join(' ') },
+        { label:'Strategy', text: e.strategyGuidance },
+        { label:'Q&A', text: e.qaSummary },
+        { label:'Concerns', text: (e.investorConcerns || []).join(' ') },
+      ];
+      fields.forEach(f => {
+        if (f.text && f.text.toLowerCase().includes(lq)) {
+          const idx = f.text.toLowerCase().indexOf(lq);
+          const excerpt = '…' + f.text.slice(Math.max(0, idx - 40), idx + 80) + '…';
+          hits.push({ entry: e, peer, section: f.label, excerpt });
+        }
+      });
+    });
+    return hits.slice(0, 30);
+  }, [q, entries, peers]);
+
+  function highlight(text) {
+    const parts = text.split(new RegExp(`(${q})`, 'gi'));
+    return parts.map((p, i) =>
+      p.toLowerCase() === q.toLowerCase()
+        ? <mark key={i} className="bg-yellow-200 rounded px-0.5">{p}</mark>
+        : p
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <h1 className="text-xl font-bold text-gray-900 mb-6">Search Archive</h1>
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><Icons.Search /></div>
+        <input type="text" value={q} onChange={e => setQ(e.target.value)}
+          placeholder="Search across all peer entries — transcripts, KPIs, concerns…"
+          style={{paddingLeft:'36px', fontSize:'15px', padding:'12px 12px 12px 40px'}}
+          autoFocus />
+      </div>
+      {q.length >= 2 && results.length === 0 && (
+        <p className="text-gray-400 text-sm">No results for "{q}"</p>
+      )}
+      <div className="space-y-3">
+        {results.map((r, i) => (
+          <div key={i} className="card p-4 hover:shadow-sm cursor-pointer transition-shadow"
+            onClick={() => { setSelectedPeer(r.peer.id); setView('peer-detail'); }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{background: r.peer.color}}>{r.peer.initials[0]}</div>
+              <span className="font-semibold text-sm text-gray-900">{r.peer.name}</span>
+              <span className="text-xs text-gray-400">{r.entry.quarter} {r.entry.year}</span>
+              <span className="tag bg-slate-100 text-slate-600 ml-auto">{r.section}</span>
+            </div>
+            <p className="text-sm text-gray-600">{highlight(r.excerpt)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// ADD ENTRY MODAL (AI-assisted)
+// ──────────────────────────────────────────────
+const EMPTY_KPIS = () => Object.fromEntries(KPI_DEFS.map(d => [d.key, { v: null, qoq: null, yoy: null }]));
+
+function AddEntryModal({ initialPeerId, onClose }) {
+  const { peers, saveEntry, apiKey } = useContext(AppCtx);
+  const [step, setStep] = useState(1); // 1=source, 2=review
+  const [peerId, setPeerId] = useState(initialPeerId || peers[0]?.id || '');
+  const [quarter, setQuarter] = useState('Q1');
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [sourceText, setSourceText] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState('');
+  const [form, setForm] = useState({
+    headlineTakeaway: '',
+    earningsSummary: ['', '', '', '', ''],
+    kpis: EMPTY_KPIS(),
+    strategyGuidance: '',
+    qaSummary: '',
+    investorConcerns: ['', '', '', '', ''],
+  });
+
+  const peer = peers.find(p => p.id === peerId);
+  const entryId = `${peerId}-${quarter}-${year}`;
+
+  async function generate() {
+    if (!apiKey) { setGenError('Please add your Claude API key in Settings first.'); return; }
+    if (!sourceText.trim()) { setGenError('Please paste some source material first.'); return; }
+    setGenerating(true);
+    setGenError('');
+    try {
+      const prompt = `You are a financial analysis assistant for Halyk Bank's Investor Relations team.
+
+Analyze the following earnings material for ${peer?.name || 'this bank'} (${quarter} ${year}) and extract structured data.
+
+Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
+{
+  "headlineTakeaway": "one concise sentence summarizing the quarter",
+  "earningsSummary": ["bullet 1", "bullet 2", "bullet 3", "bullet 4", "bullet 5"],
+  "kpis": {
+    "nim": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "roe": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "roa": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "costToIncome": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "nplRatio": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "cet1": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null},
+    "loanGrowth": {"v": number_or_null, "qoq": null, "yoy": number_or_null},
+    "netIncome": {"v": number_or_null, "qoq": number_or_null, "yoy": number_or_null, "label": "formatted string e.g. KZT 415bn"}
+  },
+  "strategyGuidance": "paragraph of management forward-looking commentary and guidance",
+  "qaSummary": "paragraph summarizing key Q&A themes from analyst questions",
+  "investorConcerns": ["concern 1", "concern 2", "concern 3", "concern 4", "concern 5"]
+}
+
+Rules: all % changes (qoq, yoy) are in percentage points. Use null for any values not found. Keep earningsSummary to exactly 5 bullets. Keep investorConcerns to exactly 5 items.
+
+SOURCE MATERIAL:
+${sourceText.slice(0, 15000)}`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 2048,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'API error'); }
+      const data = await res.json();
+      const text = data.content[0].text;
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Could not parse response');
+      const parsed = JSON.parse(jsonMatch[0]);
+      setForm(f => ({
+        headlineTakeaway: parsed.headlineTakeaway || f.headlineTakeaway,
+        earningsSummary: parsed.earningsSummary?.length ? parsed.earningsSummary : f.earningsSummary,
+        kpis: parsed.kpis ? { ...EMPTY_KPIS(), ...parsed.kpis } : f.kpis,
+        strategyGuidance: parsed.strategyGuidance || f.strategyGuidance,
+        qaSummary: parsed.qaSummary || f.qaSummary,
+        investorConcerns: parsed.investorConcerns?.length ? parsed.investorConcerns : f.investorConcerns,
+      }));
+      setStep(2);
+    } catch(e) {
+      setGenError(e.message);
+    }
+    setGenerating(false);
+  }
+
+  function handleSave() {
+    const entry = { id: entryId, peerId, quarter, year: parseInt(year), ...form, status: 'final', createdAt: Date.now() };
+    saveEntry(entry);
+    onClose(peerId);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose(null)}>
+      <div className="modal-box">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
+          <h2 className="font-semibold text-gray-900">{step === 1 ? 'Add New Entry' : 'Review & Edit Generated Content'}</h2>
+          <button onClick={() => onClose(null)} className="text-gray-400 hover:text-gray-600"><Icons.X /></button>
+        </div>
+
+        <div className="p-6">
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Bank</label>
+                  <select value={peerId} onChange={e => setPeerId(e.target.value)}>
+                    {peers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Quarter</label>
+                  <select value={quarter} onChange={e => setQuarter(e.target.value)}>
+                    {['Q1','Q2','Q3','Q4'].map(q => <option key={q}>{q}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
+                  <select value={year} onChange={e => setYear(e.target.value)}>
+                    {[2023,2024,2025,2026,2027].map(y => <option key={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Source Material
+                  <span className="text-gray-400 font-normal ml-1">— paste earnings transcript, investor presentation text, or KPI sheet</span>
+                </label>
+                <textarea rows={12} value={sourceText} onChange={e => setSourceText(e.target.value)}
+                  placeholder="Paste the full earnings call transcript, investor presentation text, or financial highlights here. The AI will extract the five structured sections automatically." />
+              </div>
+
+              {genError && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">{genError}</div>}
+
+              <div className="flex gap-3 pt-2">
+                <button className="btn btn-primary flex-1" onClick={generate} disabled={generating}>
+                  {generating ? <><Icons.Spinner />Generating…</> : <><Icons.AI />Generate with AI</>}
+                </button>
+                <button className="btn btn-secondary" onClick={() => setStep(2)}>
+                  Enter manually →
+                </button>
+              </div>
+              {!apiKey && <p className="text-xs text-amber-600 text-center">⚠ No API key set — AI generation requires a Claude API key in Settings</p>}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-5">
+              <div className="text-xs text-gray-500 bg-blue-50 border border-blue-100 rounded p-3">
+                Review and edit the AI-generated content below before saving. All fields are editable.
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Headline Takeaway</label>
+                <input type="text" value={form.headlineTakeaway} onChange={e => setForm(f => ({...f, headlineTakeaway: e.target.value}))} placeholder="One sentence summary of the quarter" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Earnings Summary (3–5 bullets)</label>
+                {form.earningsSummary.map((b, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <input type="text" value={b} onChange={e => { const a = [...form.earningsSummary]; a[i] = e.target.value; setForm(f => ({...f, earningsSummary: a})); }} placeholder={`Bullet ${i+1}`} />
+                    <button className="btn btn-secondary btn-sm" onClick={() => setForm(f => ({...f, earningsSummary: f.earningsSummary.filter((_,j) => j !== i)}))}>
+                      <Icons.X />
+                    </button>
+                  </div>
+                ))}
+                {form.earningsSummary.length < 7 && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => setForm(f => ({...f, earningsSummary: [...f.earningsSummary, '']}))}>
+                    <Icons.Plus />Add bullet
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">KPIs</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {KPI_DEFS.map(def => (
+                    <div key={def.key} className="p-2 bg-slate-50 rounded border border-slate-100">
+                      <div className="text-xs font-medium text-gray-600 mb-1">{def.label} ({def.unit || 'value'})</div>
+                      <div className="flex gap-1">
+                        {['v','qoq','yoy'].map(f => (
+                          <input key={f} type="text" style={{width:'60px', fontSize:'12px', padding:'4px 6px'}}
+                            value={form.kpis[def.key]?.[f] ?? ''} placeholder={f}
+                            onChange={e => { const val = e.target.value === '' ? null : parseFloat(e.target.value);
+                              setForm(fr => ({ ...fr, kpis: { ...fr.kpis, [def.key]: { ...(fr.kpis[def.key]||{}), [f]: val } } })); }} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Fields: value | QoQ change (pp) | YoY change (pp)</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Strategy & Guidance</label>
+                <textarea rows={4} value={form.strategyGuidance} onChange={e => setForm(f => ({...f, strategyGuidance: e.target.value}))} placeholder="Management's forward-looking commentary and guidance updates" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Q&A Summary</label>
+                <textarea rows={4} value={form.qaSummary} onChange={e => setForm(f => ({...f, qaSummary: e.target.value}))} placeholder="Key themes and topics from the analyst Q&A" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Investor Concerns</label>
+                {form.investorConcerns.map((c, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <input type="text" value={c} onChange={e => { const a = [...form.investorConcerns]; a[i] = e.target.value; setForm(f => ({...f, investorConcerns: a})); }} placeholder={`Concern ${i+1}`} />
+                    <button className="btn btn-secondary btn-sm" onClick={() => setForm(f => ({...f, investorConcerns: f.investorConcerns.filter((_,j) => j !== i)}))}>
+                      <Icons.X />
+                    </button>
+                  </div>
+                ))}
+                {form.investorConcerns.length < 8 && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => setForm(f => ({...f, investorConcerns: [...f.investorConcerns, '']}))}>
+                    <Icons.Plus />Add concern
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2 border-t border-gray-100">
+                <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
+                <button className="btn btn-primary flex-1" onClick={handleSave}>Save Entry</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// SETTINGS MODAL
+// ──────────────────────────────────────────────
+function SettingsModal({ onClose }) {
+  const { peers, addPeer, removePeer, updatePeer, apiKey, setApiKey } = useContext(AppCtx);
+  const [newName, setNewName] = useState('');
+  const [newRegion, setNewRegion] = useState('Kazakhstan');
+  const [newInitials, setNewInitials] = useState('');
+  const [localKey, setLocalKey] = useState(apiKey);
+  const [showKey, setShowKey] = useState(false);
+
+  function handleAddPeer() {
+    if (!newName.trim()) return;
+    addPeer({ name: newName.trim(), region: newRegion, initials: newInitials.trim() || newName.slice(0,2).toUpperCase() });
+    setNewName(''); setNewInitials('');
+  }
+
+  function handleSaveKey() { setApiKey(localKey.trim()); }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
+          <h2 className="font-semibold text-gray-900">Settings</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><Icons.X /></button>
+        </div>
+        <div className="p-6 space-y-8">
+
+          {/* API Key */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">Claude API Key</h3>
+            <p className="text-xs text-gray-500 mb-3">Required for AI-assisted content generation. Your key is stored locally in this browser only.</p>
+            <div className="flex gap-2">
+              <input type={showKey ? 'text' : 'password'} value={localKey} onChange={e => setLocalKey(e.target.value)}
+                placeholder="sk-ant-api…" />
+              <button className="btn btn-secondary btn-sm" style={{whiteSpace:'nowrap'}} onClick={() => setShowKey(v => !v)}>
+                {showKey ? 'Hide' : 'Show'}
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={handleSaveKey}>Save</button>
+            </div>
+            {apiKey && <p className="text-xs text-green-600 mt-1">✓ API key is set</p>}
+          </div>
+
+          {/* Manage Peers */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">Tracked Peer Banks</h3>
+            <div className="space-y-2 mb-4">
+              {peers.map(p => (
+                <div key={p.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs" style={{background: p.color}}>
+                    {p.initials[0]}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-800">{p.name}</div>
+                    <div className="text-xs text-gray-400">{p.region}</div>
+                  </div>
+                  <button className="btn btn-danger btn-sm" onClick={() => { if(confirm(`Remove ${p.name} and all its entries?`)) removePeer(p.id); }}>
+                    <Icons.Trash />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="border border-dashed border-gray-300 rounded-lg p-4">
+              <h4 className="text-xs font-medium text-gray-600 mb-3 uppercase tracking-wide">Add New Bank</h4>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Bank name" style={{gridColumn:'span 2'}} />
+                <input type="text" value={newInitials} onChange={e => setNewInitials(e.target.value)} placeholder="Initials" />
+              </div>
+              <div className="flex gap-2">
+                <select value={newRegion} onChange={e => setNewRegion(e.target.value)}>
+                  {['Kazakhstan','Georgia','Russia','CEE/CIS','Other'].map(r => <option key={r}>{r}</option>)}
+                </select>
+                <button className="btn btn-primary" onClick={handleAddPeer}><Icons.Plus />Add</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Management */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">Data & Privacy</h3>
+            <p className="text-xs text-gray-500 mb-3">All data is stored locally in your browser's localStorage. Nothing is sent to external servers except AI generation requests to the Anthropic API.</p>
+            <button className="btn btn-danger btn-sm" onClick={() => {
+              if(confirm('Clear all saved data and reset to sample data? This cannot be undone.')) {
+                localStorage.removeItem('peers_v1');
+                localStorage.removeItem('entries_v1');
+                window.location.reload();
+              }
+            }}>Reset to sample data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// APP ROOT
+// ──────────────────────────────────────────────
+function App() {
+  const [view, setView] = useState('dashboard');
+  const [selectedPeer, setSelectedPeer] = useState(null);
+  const [addEntryPeer, setAddEntryPeer] = useState(undefined); // undefined=closed, null=any peer, string=specific peer
+  const [showSettings, setShowSettings] = useState(false);
+
+  function openAddEntry(peerId) { setAddEntryPeer(peerId === undefined ? null : peerId); }
+
+  return (
+    <AppProvider>
+      <div className="min-h-screen flex flex-col">
+        <Header view={view} setView={(v) => { setView(v); }} onSettings={() => setShowSettings(true)} />
+        <main className="flex-1">
+          {view === 'dashboard' && (
+            <DashboardView
+              setView={setView}
+              setSelectedPeer={setSelectedPeer}
+              openAddEntry={openAddEntry}
+            />
+          )}
+          {view === 'peer-detail' && selectedPeer && (
+            <PeerDetailView
+              peerId={selectedPeer}
+              setView={setView}
+              openAddEntry={openAddEntry}
+            />
+          )}
+          {view === 'peer-detail' && !selectedPeer && (
+            <div className="p-12 text-center text-gray-400">
+              <p className="mb-3">Select a bank from the dashboard to view its detail.</p>
+              <button className="btn btn-primary" onClick={() => setView('dashboard')}>Go to Dashboard</button>
+            </div>
+          )}
+          {view === 'compare' && <ComparisonView />}
+          {view === 'search' && <SearchView setView={setView} setSelectedPeer={setSelectedPeer} />}
+        </main>
+
+        {addEntryPeer !== undefined && (
+          <AddEntryModal
+            initialPeerId={addEntryPeer}
+            onClose={(peerId) => {
+              setAddEntryPeer(undefined);
+              if (peerId) { setSelectedPeer(peerId); setView('peer-detail'); }
+            }}
+          />
+        )}
+        {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      </div>
+    </AppProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+<script>
+  (function() {
+    var src = document.getElementById('app-src').textContent;
+    var compiled = Babel.transform(src, { presets: [['react', { runtime: 'classic' }]] });
+    var script = document.createElement('script');
+    script.text = compiled.code;
+    document.body.appendChild(script);
+  })();
+</script>
+</body>
+</html>
