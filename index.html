@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Peer Earnings Intelligence — Halyk Bank IR</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PeerEI">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -34,6 +42,32 @@
     @media print { .no-print { display: none !important; } }
     .animate-spin { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    /* Mobile-first */
+    * { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .safe-top { padding-top: env(safe-area-inset-top); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); z-index: 40; box-shadow: 0 -2px 12px rgba(0,0,0,.06); }
+    .content-area { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    .sticky-header { position: sticky; top: 0; z-index: 30; }
+    .mobile-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 12px rgba(0,0,0,.06); overflow: hidden; }
+    .peer-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 16px 16px; -webkit-overflow-scrolling: touch; }
+    .peer-carousel-item { min-width: min(85vw, 320px); scroll-snap-align: start; flex-shrink: 0; }
+    .alert-positive { background: #f0fdf4; border-color: #86efac; }
+    .alert-negative { background: #fef2f2; border-color: #fca5a5; }
+    .alert-warning  { background: #fffbeb; border-color: #fde68a; }
+    .alert-info     { background: #eff6ff; border-color: #bfdbfe; }
+    .kpi-mini { text-align: center; padding: 10px 8px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9; }
+    .section-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #64748b; padding: 16px 16px 8px; }
+    /* Swipe hint gradient */
+    .carousel-wrap { position: relative; }
+    .carousel-wrap::after { content:''; position:absolute; right:0; top:0; bottom:0; width:32px; background: linear-gradient(to right, transparent, rgba(248,250,252,.9)); pointer-events:none; }
+    /* Responsive tables */
+    .resp-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    /* Rank bar */
+    .rank-bar { height: 4px; border-radius: 2px; background: #e2e8f0; overflow: hidden; margin-top: 4px; }
+    .rank-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
     .modal-box { background: white; border-radius: 12px; width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; }
     .prose { line-height: 1.7; color: #374151; }
@@ -52,7 +86,7 @@
     .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen" style="overscroll-behavior-y:none;">
 <div id="root"></div>
 
 <script type="text/x-jsx" id="app-src">
@@ -392,41 +426,157 @@ const Icons = {
   AI: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>,
   Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>,
   Spinner: () => <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>,
+  Bell: () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+  Home2: () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  Brain: () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>,
+  BarChart: () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  ChevronRight: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>,
+  Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 };
 
 // ──────────────────────────────────────────────
-// HEADER
+// TOP HEADER
 // ──────────────────────────────────────────────
-function Header({ view, setView, onSettings }) {
-  const navItems = [
-    { id:'dashboard',  label:'Dashboard',  Icon: Icons.Dashboard },
-    { id:'compare',    label:'Compare',    Icon: Icons.Compare },
-    { id:'valuation',  label:'Valuation',  Icon: Icons.Star },
-    { id:'search',     label:'Search',     Icon: Icons.Search },
-  ];
+function TopHeader({ title, subtitle, rightAction }) {
   return (
-    <header className="bg-navy-600 text-white no-print" style={{background:'#1B3A6B'}}>
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 bg-yellow-400 rounded flex items-center justify-center text-navy-800 font-bold text-sm" style={{color:'#1B3A6B'}}>H</div>
+    <header className="no-print sticky-header" style={{background:'#1B3A6B',color:'white',paddingTop:'calc(env(safe-area-inset-top) + 10px)',paddingBottom:10,paddingLeft:16,paddingRight:16}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:38}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:32,height:32,background:'#F59E0B',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:15,color:'#1B3A6B',flexShrink:0}}>H</div>
           <div>
-            <span className="font-semibold text-sm tracking-wide">Peer Earnings Intelligence</span>
-            <span className="text-blue-300 text-xs ml-2">Halyk Bank IR</span>
+            <div style={{fontWeight:700,fontSize:15,lineHeight:1.2}}>{title}</div>
+            {subtitle && <div style={{fontSize:11,opacity:.65,marginTop:1}}>{subtitle}</div>}
           </div>
         </div>
-        <nav className="flex items-center gap-1">
-          {navItems.map(({ id, label, Icon }) => (
-            <button key={id} onClick={() => setView(id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${view === id ? 'bg-white/20 text-white' : 'text-blue-200 hover:text-white hover:bg-white/10'}`}>
-              <Icon />{label}
-            </button>
-          ))}
-          <button onClick={onSettings} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium text-blue-200 hover:text-white hover:bg-white/10 transition-colors">
-            <Icons.Settings />Settings
-          </button>
-        </nav>
+        {rightAction && <div style={{flexShrink:0}}>{rightAction}</div>}
       </div>
     </header>
+  );
+}
+
+// ──────────────────────────────────────────────
+// BOTTOM NAV
+// ──────────────────────────────────────────────
+function BottomNav({ view, setView }) {
+  const items = [
+    { id:'dashboard',    label:'Home',     Icon: Icons.Home2 },
+    { id:'compare',      label:'Compare',  Icon: Icons.Compare },
+    { id:'intelligence', label:'Insight',  Icon: Icons.Brain },
+    { id:'alerts',       label:'Alerts',   Icon: Icons.Bell },
+    { id:'settings',     label:'Settings', Icon: Icons.Settings },
+  ];
+  return (
+    <nav className="bottom-nav no-print">
+      <div style={{display:'flex',alignItems:'stretch'}}>
+        {items.map(({ id, label, Icon }) => {
+          const active = view === id;
+          return (
+            <button key={id} onClick={() => setView(id)} style={{
+              flex:1, paddingTop:10, paddingBottom:6, display:'flex', flexDirection:'column', alignItems:'center', gap:3,
+              background:'none', border:'none', cursor:'pointer',
+              color: active ? '#1B3A6B' : '#94a3b8', position:'relative', transition:'color .15s'
+            }}>
+              {active && <span style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:24,height:2,borderRadius:1,background:'#1B3A6B'}}></span>}
+              <Icon />
+              <span style={{fontSize:10,fontWeight:active?700:400,letterSpacing:.2}}>{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ──────────────────────────────────────────────
+// MOBILE PEER CARD (for carousel)
+// ──────────────────────────────────────────────
+function MobilePeerCard({ peer, entry, onView, onAddEntry }) {
+  const isHome = peer.isHome;
+  return (
+    <div className="mobile-card" style={isHome ? {boxShadow:'0 0 0 2px #1B3A6B, 0 2px 12px rgba(0,0,0,.08)'} : {}}>
+      <div style={{padding:'14px 14px 10px'}}>
+        {/* Header */}
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:38,height:38,borderRadius:10,background:peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:12,flexShrink:0,position:'relative'}}>
+              {peer.initials}
+              {isHome && <span style={{position:'absolute',top:-4,right:-4,width:12,height:12,background:'#F59E0B',borderRadius:'50%',border:'1.5px solid white'}}></span>}
+            </div>
+            <div>
+              <div style={{fontWeight:700,fontSize:14,color:'#111827'}}>{peer.flag} {peer.name}</div>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginTop:2}}>
+                {peer.ticker && <span style={{fontSize:11,fontFamily:'monospace',color:'#94a3b8',background:'#f1f5f9',padding:'0 5px',borderRadius:3}}>{peer.ticker}</span>}
+                <span style={{fontSize:11,color:'#94a3b8'}}>{peer.country}</span>
+              </div>
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}}>
+            <StatusDot entry={entry} />
+            <CategoryBadge category={peer.category} />
+          </div>
+        </div>
+        {/* Entry content */}
+        {entry ? (
+          <>
+            <div style={{fontSize:11,fontWeight:600,color:'#94a3b8',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>{entry.quarter} {entry.year}</div>
+            <p style={{fontSize:13,color:'#374151',lineHeight:1.5,marginBottom:12,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{entry.headlineTakeaway}</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:10}}>
+              {['nim','roe','nplRatio'].map(k => {
+                const def = KPI_DEFS.find(d => d.key === k);
+                const kd = entry.kpis?.[k];
+                return (
+                  <div key={k} className="kpi-mini">
+                    <div style={{fontSize:10,color:'#94a3b8',marginBottom:2}}>{def.label}</div>
+                    <div style={{fontSize:15,fontWeight:700,color:'#111827'}}>{kd?.v != null ? `${kd.v.toFixed(1)}%` : '—'}</div>
+                    {kd?.qoq != null && <ChangeChip change={kd.qoq} hib={def.hib} />}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div style={{textAlign:'center',padding:'16px 0',color:'#94a3b8',fontSize:13}}>No entries yet</div>
+        )}
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-primary btn-sm" style={{flex:1,justifyContent:'center'}} onClick={() => onView(peer.id)}>View Details</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onAddEntry(peer.id)} title="Add entry"><Icons.Plus /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// PEER CAROUSEL
+// ──────────────────────────────────────────────
+function PeerCarousel({ onView, onAddEntry }) {
+  const { peers, getLatestEntry } = useContext(AppCtx);
+  const [filter, setFilter] = useState('All');
+  const filtered = useMemo(() =>
+    filter === 'All' ? peers : peers.filter(p => p.category === filter.toLowerCase())
+  , [peers, filter]);
+
+  return (
+    <div>
+      <div className="section-header">Peer Universe</div>
+      <div className="hide-scrollbar" style={{display:'flex',gap:8,padding:'0 16px 10px',overflowX:'auto'}}>
+        {FILTER_OPTIONS.map(opt => (
+          <button key={opt} onClick={() => setFilter(opt)} style={{
+            padding:'5px 14px', borderRadius:20, border:'1px solid', whiteSpace:'nowrap', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all .15s',
+            background: filter === opt ? '#1B3A6B' : 'white', color: filter === opt ? 'white' : '#64748b', borderColor: filter === opt ? '#1B3A6B' : '#e2e8f0'
+          }}>{opt}</button>
+        ))}
+      </div>
+      <div className="carousel-wrap">
+        <div className="peer-carousel hide-scrollbar">
+          {filtered.map(peer => (
+            <div key={peer.id} className="peer-carousel-item">
+              <MobilePeerCard peer={peer} entry={getLatestEntry(peer.id)} onView={onView} onAddEntry={onAddEntry} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -508,68 +658,202 @@ function PeerCard({ peer, entry, onView, onAddEntry }) {
 }
 
 // ──────────────────────────────────────────────
-// DASHBOARD VIEW
+// DASHBOARD VIEW (mobile-first, 4 sections)
 // ──────────────────────────────────────────────
 function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
-  const { peers, getLatestEntry, allQuarters, entries } = useContext(AppCtx);
-  const [filter, setFilter] = useState('All');
+  const { peers, entries, getLatestEntry, allQuarters } = useContext(AppCtx);
 
-  const filteredPeers = useMemo(() => {
-    const f = filter.toLowerCase();
-    return peers.filter(p => f === 'all' || p.category === f);
-  }, [peers, filter]);
+  const halyk = peers.find(p => p.isHome);
+  const halykEntry = halyk ? getLatestEntry(halyk.id) : null;
+
+  // Compute core peer averages for halyk positioning
+  const coreEntries = useMemo(() => {
+    const corePeers = peers.filter(p => p.category === 'core' && !p.isHome);
+    return corePeers.map(p => getLatestEntry(p.id)).filter(Boolean);
+  }, [peers, getLatestEntry]);
+
+  const peerAvg = useMemo(() => {
+    if (!coreEntries.length) return null;
+    const avg = key => { const vs = coreEntries.map(e => e.kpis?.[key]?.v).filter(v => v != null); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; };
+    return { nim: avg('nim'), roe: avg('roe'), nplRatio: avg('nplRatio') };
+  }, [coreEntries]);
+
+  const halykValuation = halykEntry?.valuation;
+  const peerValAvg = useMemo(() => {
+    const others = peers.filter(p => !p.isHome).map(p => getLatestEntry(p.id)).filter(e => e?.valuation?.pe);
+    if (!others.length) return null;
+    const avg = key => { const vs = others.map(e => e.valuation?.[key]).filter(v => v != null); return vs.length ? vs.reduce((a,b)=>a+b,0)/vs.length : null; };
+    return { pe: avg('pe'), pb: avg('pb'), divYield: avg('divYield') };
+  }, [peers, getLatestEntry]);
+
+  // Executive brief text
+  const brief = useMemo(() => {
+    if (!halykEntry || !peerAvg) return null;
+    const h = halykEntry.kpis;
+    const roeRank = [...coreEntries, halykEntry].filter(e => e.kpis?.roe?.v != null).sort((a,b) => b.kpis.roe.v - a.kpis.roe.v).findIndex(e => e.peerId === halyk.id || e.id === halykEntry.id) + 1;
+    const total = coreEntries.length + 1;
+    const parts = [];
+    if (h.roe?.v) parts.push(`RoE ${h.roe.v.toFixed(1)}% ranks #${roeRank} of ${total} core peers`);
+    if (halykValuation?.pe && peerValAvg?.pe) {
+      const disc = ((halykValuation.pe - peerValAvg.pe) / peerValAvg.pe * 100);
+      parts.push(`P/E ${halykValuation.pe.toFixed(1)}x — ${Math.abs(disc).toFixed(0)}% ${disc < 0 ? 'discount' : 'premium'} to peer avg`);
+    }
+    if (halykValuation?.divYield) parts.push(`Div yield ${halykValuation.divYield.toFixed(1)}%`);
+    return parts.join(' · ');
+  }, [halykEntry, peerAvg, peerValAvg, coreEntries, halyk, halykValuation]);
+
+  // Latest alerts (top KPI moves)
+  const alerts = useMemo(() => {
+    const items = [];
+    const sorted = [...entries].sort((a,b) => b.year !== a.year ? b.year-a.year : QUARTER_ORDER[b.quarter]-QUARTER_ORDER[a.quarter]);
+    sorted.slice(0,20).forEach(e => {
+      const peer = peers.find(p => p.id === e.peerId);
+      if (!peer) return;
+      const kpis = e.kpis || {};
+      if (kpis.roe?.qoq != null && Math.abs(kpis.roe.qoq) >= 0.5) {
+        items.push({ id:`${e.id}-roe`, type: kpis.roe.qoq>0?'positive':'negative', peer, label:`${peer.name} RoE`, value:`${kpis.roe.qoq>0?'+':''}${kpis.roe.qoq.toFixed(1)}pp QoQ → ${kpis.roe.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}` });
+      }
+      if (kpis.nim?.qoq != null && Math.abs(kpis.nim.qoq) >= 0.2) {
+        items.push({ id:`${e.id}-nim`, type: kpis.nim.qoq>0?'positive':'warning', peer, label:`${peer.name} NIM`, value:`${kpis.nim.qoq>0?'+':''}${kpis.nim.qoq.toFixed(1)}pp QoQ → ${kpis.nim.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}` });
+      }
+      if (e.valuation?.pe) {
+        items.push({ id:`${e.id}-val`, type:'info', peer, label:`${peer.ticker} valuation`, value:`P/E ${e.valuation.pe.toFixed(1)}x · P/B ${e.valuation.pb?.toFixed(2)||'—'}x · ${e.valuation.mktCapLabel||''}`, q:`${e.quarter} ${e.year}` });
+      }
+    });
+    return items.slice(0,4);
+  }, [entries, peers]);
+
+  const navigate = (id) => { setSelectedPeer(id); setView('peer-detail'); };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-6">
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Peer Bank Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Latest quarterly results — {peers.length} banks tracked</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
-            {FILTER_OPTIONS.map(opt => (
-              <button key={opt} onClick={() => setFilter(opt)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filter === opt ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                {opt}
-              </button>
-            ))}
-          </div>
-          <button className="btn btn-primary" onClick={() => openAddEntry(null)}>
-            <Icons.Plus />Add Entry
-          </button>
-        </div>
-      </div>
+    <div className="content-area" style={{background:'#f8fafc',minHeight:'100vh'}}>
+      <TopHeader title="Peer Earnings" subtitle="Halyk Bank IR"
+        rightAction={<button className="btn btn-sm" style={{background:'rgba(255,255,255,.15)',color:'white',border:'none',borderRadius:8,padding:'6px 12px',fontWeight:600,fontSize:13}} onClick={() => openAddEntry(null)}><Icons.Plus /></button>} />
 
-      {filteredPeers.length === 0 ? (
-        <div className="card p-12 text-center text-gray-400">
-          <p className="text-lg mb-2">No peers found</p>
-          <p className="text-sm">Add peers in Settings to get started.</p>
-        </div>
-      ) : (
-        <div className="grid gap-4" style={{ gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))' }}>
-          {filteredPeers.map(peer => (
-            <PeerCard
-              key={peer.id}
-              peer={peer}
-              entry={getLatestEntry(peer.id)}
-              onView={(id) => { setSelectedPeer(id); setView('peer-detail'); }}
-              onAddEntry={(id) => openAddEntry(id)}
-            />
-          ))}
+      {/* 1 — Executive Brief */}
+      {brief && (
+        <div style={{padding:'12px 16px 0'}}>
+          <div className="mobile-card" style={{padding:'14px',borderLeft:'3px solid #1B3A6B',background:'linear-gradient(135deg,#f0f4ff,#fff)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+              <div style={{width:24,height:24,background:'#1B3A6B',borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:800,fontSize:11}}>H</div>
+              <div style={{fontSize:11,fontWeight:700,color:'#1B3A6B',textTransform:'uppercase',letterSpacing:.5}}>Executive Brief</div>
+            </div>
+            <p style={{fontSize:13,color:'#374151',lineHeight:1.6}}>{brief}</p>
+          </div>
         </div>
       )}
 
+      {/* 2 — Today's Snapshot (Halyk KPIs) */}
+      {halykEntry && (
+        <div>
+          <div className="section-header">Today's Snapshot — {halykEntry.quarter} {halykEntry.year}</div>
+          <div style={{padding:'0 16px'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+              {['nim','roe','nplRatio','cet1'].map(k => {
+                const def = KPI_DEFS.find(d => d.key === k);
+                const kd = halykEntry.kpis?.[k];
+                return (
+                  <div key={k} className="mobile-card" style={{padding:'10px 8px',textAlign:'center'}}>
+                    <div style={{fontSize:10,color:'#94a3b8',fontWeight:600,marginBottom:3}}>{def.label}</div>
+                    <div style={{fontSize:16,fontWeight:800,color:'#111827'}}>{kd?.v != null ? `${kd.v.toFixed(1)}%` : '—'}</div>
+                    {kd?.qoq != null && <div style={{marginTop:2}}><ChangeChip change={kd.qoq} hib={def.hib} /></div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3 — Latest Alerts */}
+      {alerts.length > 0 && (
+        <div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 16px 8px'}}>
+            <div className="section-header" style={{padding:0}}>Latest Alerts</div>
+            <button onClick={() => setView('alerts')} style={{fontSize:12,color:'#1B3A6B',fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>View all →</button>
+          </div>
+          <div style={{padding:'0 16px',display:'flex',flexDirection:'column',gap:8}}>
+            {alerts.map(a => (
+              <div key={a.id} className={`mobile-card alert-${a.type}`} style={{padding:'10px 12px',borderWidth:1,borderStyle:'solid',display:'flex',alignItems:'flex-start',gap:10}}>
+                <div style={{width:28,height:28,borderRadius:8,background:a.peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:11,flexShrink:0}}>{(a.peer.initials||'?')[0]}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:700,color:'#374151'}}>{a.label}</div>
+                  <div style={{fontSize:12,color:'#64748b',marginTop:1}}>{a.value}</div>
+                </div>
+                <div style={{fontSize:10,color:'#94a3b8',whiteSpace:'nowrap',flexShrink:0}}>{a.q}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4 — Halyk Positioning */}
+      {halykEntry && peerAvg && (
+        <div>
+          <div className="section-header">Halyk Positioning vs Core Peers</div>
+          <div style={{padding:'0 16px'}}>
+            <div className="mobile-card" style={{padding:'14px'}}>
+              {['nim','roe','nplRatio'].map(k => {
+                const def = KPI_DEFS.find(d => d.key === k);
+                const hv = halykEntry.kpis?.[k]?.v;
+                const av = peerAvg[k];
+                if (hv == null || av == null) return null;
+                const diff = hv - av;
+                const isGood = def.hib ? diff > 0 : diff < 0;
+                const maxVal = Math.max(hv, av, 0.1);
+                return (
+                  <div key={k} style={{marginBottom:12}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                      <div style={{fontSize:12,fontWeight:600,color:'#374151'}}>{def.label}</div>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontSize:11,color:'#94a3b8'}}>Peer avg {av.toFixed(1)}%</span>
+                        <span style={{fontSize:13,fontWeight:700,color: isGood?'#16a34a':'#dc2626'}}>Halyk {hv.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                      <div style={{flex:1,height:6,background:'#e2e8f0',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{height:'100%',borderRadius:3,background:'#cbd5e1',width:`${(av/maxVal*100).toFixed(0)}%`}}></div>
+                      </div>
+                      <div style={{flex:1,height:8,background:'#e2e8f0',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{height:'100%',borderRadius:3,background:'#1B3A6B',width:`${(hv/maxVal*100).toFixed(0)}%`}}></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {halykValuation && peerValAvg?.pe && (
+                <div style={{marginTop:4,paddingTop:10,borderTop:'1px solid #f1f5f9'}}>
+                  <div style={{fontSize:11,color:'#94a3b8',marginBottom:4}}>Valuation</div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    {[['P/E',halykValuation.pe?.toFixed(1)+'x',peerValAvg.pe?.toFixed(1)+'x'],['P/B',halykValuation.pb?.toFixed(2)+'x',peerValAvg.pb?.toFixed(2)+'x'],['Div Yld',halykValuation.divYield?.toFixed(1)+'%',peerValAvg.divYield?.toFixed(1)+'%']].map(([lbl,hv,av]) => (
+                      <div key={lbl} style={{flex:1,minWidth:70,textAlign:'center',background:'#f8fafc',borderRadius:8,padding:'6px 4px',border:'1px solid #f1f5f9'}}>
+                        <div style={{fontSize:10,color:'#94a3b8'}}>{lbl}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:'#1B3A6B'}}>{hv}</div>
+                        <div style={{fontSize:10,color:'#94a3b8'}}>avg {av}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Peer Carousel */}
+      <PeerCarousel onView={navigate} onAddEntry={openAddEntry} />
+
+      {/* Coverage footer */}
       {allQuarters.length > 0 && (
-        <div className="mt-8 card p-4">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Coverage Summary</div>
-          <div className="flex flex-wrap gap-2">
-            {allQuarters.slice(0, 8).map(({ quarter, year }) => {
+        <div style={{padding:'0 16px 8px'}}>
+          <div className="section-header" style={{padding:'12px 0 8px'}}>Coverage</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {allQuarters.slice(0,6).map(({ quarter, year }) => {
               const count = entries.filter(e => e.quarter === quarter && e.year === year).length;
               return (
-                <div key={`${year}-${quarter}`} className="text-center px-3 py-2 bg-slate-50 rounded-md border border-slate-200">
-                  <div className="text-xs font-semibold text-gray-700">{quarter} {year}</div>
-                  <div className="text-xs text-gray-400">{count} of {peers.length}</div>
+                <div key={`${year}-${quarter}`} style={{textAlign:'center',padding:'6px 12px',background:'white',borderRadius:8,border:'1px solid #e2e8f0'}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#374151'}}>{quarter} {year}</div>
+                  <div style={{fontSize:11,color:'#94a3b8'}}>{count}/{peers.length}</div>
                 </div>
               );
             })}
@@ -1650,6 +1934,241 @@ function SettingsModal({ onClose }) {
 }
 
 // ──────────────────────────────────────────────
+// ALERTS VIEW
+// ──────────────────────────────────────────────
+function AlertsView() {
+  const { peers, entries } = useContext(AppCtx);
+
+  const alerts = useMemo(() => {
+    const items = [];
+    const sorted = [...entries].sort((a,b) => b.year !== a.year ? b.year-a.year : QUARTER_ORDER[b.quarter]-QUARTER_ORDER[a.quarter]);
+    sorted.forEach(e => {
+      const peer = peers.find(p => p.id === e.peerId);
+      if (!peer) return;
+      const kpis = e.kpis || {};
+      // New entry
+      items.push({ id:`${e.id}-entry`, type:'info', peer, title:`${peer.name} ${e.quarter} ${e.year} results`, body: e.headlineTakeaway, q:`${e.quarter} ${e.year}`, category:'New Entry' });
+      // RoE move
+      if (kpis.roe?.qoq != null && Math.abs(kpis.roe.qoq) >= 0.4) {
+        items.push({ id:`${e.id}-roe`, type: kpis.roe.qoq>0?'positive':'negative', peer, title:`RoE ${kpis.roe.qoq>0?'▲':'▼'} ${Math.abs(kpis.roe.qoq).toFixed(1)}pp at ${peer.name}`, body:`RoE moved to ${kpis.roe.v.toFixed(1)}% in ${e.quarter} ${e.year}`, q:`${e.quarter} ${e.year}`, category:'KPI Move' });
+      }
+      // NIM move
+      if (kpis.nim?.qoq != null && Math.abs(kpis.nim.qoq) >= 0.2) {
+        items.push({ id:`${e.id}-nim`, type: kpis.nim.qoq>0?'positive':'warning', peer, title:`NIM ${kpis.nim.qoq>0?'expanded':'compressed'} at ${peer.name}`, body:`NIM ${kpis.nim.qoq>0?'+':''}${kpis.nim.qoq.toFixed(1)}pp to ${kpis.nim.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}`, category:'NIM Alert' });
+      }
+      // NPL deterioration
+      if (kpis.nplRatio?.qoq != null && kpis.nplRatio.qoq > 0.3) {
+        items.push({ id:`${e.id}-npl`, type:'negative', peer, title:`NPL Ratio up ${kpis.nplRatio.qoq.toFixed(1)}pp at ${peer.name}`, body:`NPL ratio increased to ${kpis.nplRatio.v.toFixed(1)}%`, q:`${e.quarter} ${e.year}`, category:'Asset Quality' });
+      }
+      // Valuation
+      if (e.valuation?.pe) {
+        items.push({ id:`${e.id}-val`, type:'info', peer, title:`${peer.ticker} P/E ${e.valuation.pe.toFixed(1)}x`, body:`P/B ${e.valuation.pb?.toFixed(2)||'—'}x · Div yield ${e.valuation.divYield?.toFixed(1)||'—'}% · ${e.valuation.mktCapLabel||''}`, q:`${e.quarter} ${e.year}`, category:'Valuation' });
+      }
+      // Price reaction
+      if (e.valuation?.priceReaction?.earningsDay != null) {
+        const r = e.valuation.priceReaction.earningsDay;
+        items.push({ id:`${e.id}-rx`, type: r>0?'positive':r<0?'negative':'info', peer, title:`${peer.ticker} ${r>0?'+':''}${r.toFixed(1)}% on earnings day`, body:`+1d: ${e.valuation.priceReaction.plus1d?.toFixed(1)||'—'}% · +5d: ${e.valuation.priceReaction.plus5d?.toFixed(1)||'—'}% · +30d: ${e.valuation.priceReaction.plus30d?.toFixed(1)||'—'}%`, q:`${e.quarter} ${e.year}`, category:'Price Reaction' });
+      }
+    });
+    return items.slice(0, 40);
+  }, [entries, peers]);
+
+  const categories = ['All', 'New Entry', 'KPI Move', 'NIM Alert', 'Asset Quality', 'Valuation', 'Price Reaction'];
+  const [catFilter, setCatFilter] = useState('All');
+  const filtered = catFilter === 'All' ? alerts : alerts.filter(a => a.category === catFilter);
+
+  const typeColor = { positive:'#16a34a', negative:'#dc2626', warning:'#d97706', info:'#1d4ed8' };
+  const typeBg = { positive:'#f0fdf4', negative:'#fef2f2', warning:'#fffbeb', info:'#eff6ff' };
+  const typeBorder = { positive:'#86efac', negative:'#fca5a5', warning:'#fde68a', info:'#bfdbfe' };
+
+  return (
+    <div className="content-area" style={{background:'#f8fafc',minHeight:'100vh'}}>
+      <TopHeader title="Alerts" subtitle={`${alerts.length} signals`} />
+      <div className="hide-scrollbar" style={{display:'flex',gap:8,padding:'12px 16px 4px',overflowX:'auto'}}>
+        {categories.map(cat => (
+          <button key={cat} onClick={() => setCatFilter(cat)} style={{
+            padding:'5px 12px', borderRadius:20, border:'1px solid', whiteSpace:'nowrap', fontSize:12, fontWeight:600, cursor:'pointer',
+            background: catFilter===cat?'#1B3A6B':'white', color: catFilter===cat?'white':'#64748b', borderColor: catFilter===cat?'#1B3A6B':'#e2e8f0'
+          }}>{cat}</button>
+        ))}
+      </div>
+      <div style={{padding:'8px 16px',display:'flex',flexDirection:'column',gap:8}}>
+        {filtered.length === 0 && <div style={{textAlign:'center',padding:32,color:'#94a3b8',fontSize:14}}>No alerts</div>}
+        {filtered.map(a => (
+          <div key={a.id} style={{background:typeBg[a.type],border:`1px solid ${typeBorder[a.type]}`,borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'flex-start',gap:10}}>
+            <div style={{width:32,height:32,borderRadius:8,background:a.peer.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:12,flexShrink:0}}>{(a.peer.initials||'?')[0]}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3,flexWrap:'wrap'}}>
+                <span style={{fontSize:11,fontWeight:700,color:typeColor[a.type],background:'white',padding:'1px 7px',borderRadius:10,border:`1px solid ${typeBorder[a.type]}`}}>{a.category}</span>
+                <span style={{fontSize:11,color:'#94a3b8'}}>{a.peer.flag} {a.peer.ticker} · {a.q}</span>
+              </div>
+              <div style={{fontSize:13,fontWeight:600,color:'#1f2937',marginBottom:2}}>{a.title}</div>
+              <div style={{fontSize:12,color:'#64748b',lineHeight:1.4}}>{a.body}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// INTELLIGENCE VIEW (Valuation + Search tabs)
+// ──────────────────────────────────────────────
+function IntelligenceView({ setView, setSelectedPeer }) {
+  const [activeTab, setActiveTab] = useState('valuation');
+  return (
+    <div className="content-area" style={{minHeight:'100vh'}}>
+      <TopHeader title="Intelligence" subtitle="Valuation & Search" />
+      <div style={{display:'flex',borderBottom:'1px solid #e2e8f0',background:'white',position:'sticky',top:0,zIndex:20}}>
+        {[{id:'valuation',label:'Valuation'},{id:'search',label:'Search'}].map(t => (
+          <button key={t.id} className={`tab-btn ${activeTab===t.id?'active':''}`} style={{flex:1,textAlign:'center'}} onClick={() => setActiveTab(t.id)}>{t.label}</button>
+        ))}
+      </div>
+      {activeTab === 'valuation' && <ValuationView />}
+      {activeTab === 'search' && <SearchView setView={setView} setSelectedPeer={setSelectedPeer} />}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// SETTINGS VIEW (full page)
+// ──────────────────────────────────────────────
+function SettingsView() {
+  const { peers, addPeer, removePeer, apiKey, setApiKey, entries } = useContext(AppCtx);
+  const [newName, setNewName] = useState('');
+  const [newTicker, setNewTicker] = useState('');
+  const [newCountry, setNewCountry] = useState('Kazakhstan');
+  const [newFlag, setNewFlag] = useState('🏦');
+  const [newInitials, setNewInitials] = useState('');
+  const [newCategory, setNewCategory] = useState('core');
+  const [localKey, setLocalKey] = useState(apiKey);
+  const [showKey, setShowKey] = useState(false);
+  const [pwaInstalled, setPwaInstalled] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handler = e => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    if (window.matchMedia('(display-mode: standalone)').matches) setPwaInstalled(true);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  function handleInstall() {
+    if (deferredPrompt) { deferredPrompt.prompt(); setDeferredPrompt(null); }
+  }
+
+  function handleAddPeer() {
+    if (!newName.trim()) return;
+    addPeer({ name: newName.trim(), ticker: newTicker.trim().toUpperCase(), country: newCountry, flag: newFlag, initials: newInitials.trim() || newName.slice(0,3).toUpperCase(), category: newCategory });
+    setNewName(''); setNewTicker(''); setNewInitials(''); setNewFlag('🏦');
+  }
+
+  const sections = [
+    {
+      title: 'App', content: (
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 0',borderBottom:'1px solid #f1f5f9'}}>
+            <div>
+              <div style={{fontWeight:600,fontSize:14,color:'#111827'}}>Peer Earnings Intelligence</div>
+              <div style={{fontSize:12,color:'#94a3b8'}}>v2.0 · PWA · {peers.length} banks · {entries.length} entries</div>
+            </div>
+            <div style={{width:40,height:40,background:'#1B3A6B',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'#F59E0B',fontWeight:800,fontSize:18}}>H</div>
+          </div>
+          {pwaInstalled ? (
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:'#f0fdf4',borderRadius:10,border:'1px solid #86efac'}}>
+              <span style={{color:'#16a34a',fontSize:18}}>✓</span>
+              <span style={{fontSize:13,color:'#15803d',fontWeight:600}}>Installed as app</span>
+            </div>
+          ) : deferredPrompt ? (
+            <button className="btn btn-primary" onClick={handleInstall} style={{justifyContent:'center',gap:8}}>
+              <Icons.Download />Add to Home Screen
+            </button>
+          ) : (
+            <div style={{fontSize:12,color:'#94a3b8',padding:'8px 12px',background:'#f8fafc',borderRadius:8,border:'1px solid #f1f5f9'}}>
+              To install: tap Share → Add to Home Screen (iOS) or browser menu → Install (Android)
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      title: 'Claude API Key', content: (
+        <div>
+          <p style={{fontSize:12,color:'#64748b',marginBottom:10}}>Required for AI-assisted content generation. Stored locally only.</p>
+          <div style={{display:'flex',gap:8,marginBottom:6}}>
+            <input type={showKey?'text':'password'} value={localKey} onChange={e => setLocalKey(e.target.value)} placeholder="sk-ant-api…" />
+            <button className="btn btn-secondary btn-sm" style={{whiteSpace:'nowrap'}} onClick={() => setShowKey(v=>!v)}>{showKey?'Hide':'Show'}</button>
+            <button className="btn btn-primary btn-sm" onClick={() => setApiKey(localKey.trim())}>Save</button>
+          </div>
+          {apiKey && <div style={{fontSize:12,color:'#16a34a',fontWeight:600}}>✓ API key is set</div>}
+        </div>
+      )
+    },
+    {
+      title: 'Tracked Banks', content: (
+        <div>
+          <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:12}}>
+            {peers.map(p => (
+              <div key={p.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'#f8fafc',borderRadius:10,border:'1px solid #f1f5f9'}}>
+                <div style={{width:32,height:32,borderRadius:8,background:p.color,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:11,flexShrink:0}}>{(p.initials||'?')[0]}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:600,fontSize:13,color:'#111827'}}>{p.flag} {p.name} {p.ticker&&<span style={{fontSize:11,fontFamily:'monospace',color:'#94a3b8'}}>({p.ticker})</span>}</div>
+                  <div style={{display:'flex',gap:6,alignItems:'center',marginTop:2}}>
+                    <span style={{fontSize:11,color:'#94a3b8'}}>{p.country}</span>
+                    <CategoryBadge category={p.category} />
+                    {p.isHome && <span style={{fontSize:11,color:'#1B3A6B',fontWeight:600}}>★ Home</span>}
+                  </div>
+                </div>
+                {!p.isHome && <button className="btn btn-danger btn-sm" onClick={() => {if(confirm(`Remove ${p.name}?`)) removePeer(p.id);}}><Icons.Trash /></button>}
+              </div>
+            ))}
+          </div>
+          <div style={{border:'1.5px dashed #e2e8f0',borderRadius:12,padding:'14px'}}>
+            <div style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}}>Add New Bank</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+              <input type="text" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Bank name" style={{gridColumn:'span 2'}} />
+              <input type="text" value={newTicker} onChange={e=>setNewTicker(e.target.value)} placeholder="Ticker" />
+              <input type="text" value={newInitials} onChange={e=>setNewInitials(e.target.value)} placeholder="Initials" />
+              <input type="text" value={newFlag} onChange={e=>setNewFlag(e.target.value)} placeholder="🏦" />
+              <input type="text" value={newCountry} onChange={e=>setNewCountry(e.target.value)} placeholder="Country" />
+              <select value={newCategory} onChange={e=>setNewCategory(e.target.value)} style={{gridColumn:'span 2'}}>
+                <option value="core">Core Peer</option>
+                <option value="cee">CEE Peer</option>
+                <option value="adjacent">Adjacent Financial</option>
+              </select>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={handleAddPeer}><Icons.Plus />Add Bank</button>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Data & Privacy', content: (
+        <div>
+          <p style={{fontSize:12,color:'#64748b',marginBottom:10}}>All data is stored locally in your browser. Nothing is sent externally except AI generation requests to the Anthropic API.</p>
+          <button className="btn btn-danger btn-sm" onClick={() => { if(confirm('Reset to sample data? This cannot be undone.')) { localStorage.removeItem('peers_v2'); localStorage.removeItem('entries_v2'); window.location.reload(); } }}>Reset to sample data</button>
+        </div>
+      )
+    },
+  ];
+
+  return (
+    <div className="content-area" style={{background:'#f8fafc',minHeight:'100vh'}}>
+      <TopHeader title="Settings" subtitle="App configuration" />
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:12}}>
+        {sections.map(s => (
+          <div key={s.title} className="mobile-card" style={{padding:'14px 16px'}}>
+            <div style={{fontSize:13,fontWeight:700,color:'#1f2937',marginBottom:10,borderBottom:'1px solid #f1f5f9',paddingBottom:8}}>{s.title}</div>
+            {s.content}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // VALUATION VIEW
 // ──────────────────────────────────────────────
 function ValuationView() {
@@ -1970,51 +2489,58 @@ function ValuationView() {
 function App() {
   const [view, setView] = useState('dashboard');
   const [selectedPeer, setSelectedPeer] = useState(null);
-  const [addEntryPeer, setAddEntryPeer] = useState(undefined); // undefined=closed, null=any peer, string=specific peer
-  const [showSettings, setShowSettings] = useState(false);
+  const [prevView, setPrevView] = useState('dashboard');
+  const [addEntryPeer, setAddEntryPeer] = useState(undefined);
+
+  function navigate(v) {
+    if (v !== 'peer-detail') setPrevView(v);
+    setView(v);
+  }
 
   function openAddEntry(peerId) { setAddEntryPeer(peerId === undefined ? null : peerId); }
 
+  const mainViews = ['dashboard','compare','intelligence','alerts','settings'];
+  const inMain = mainViews.includes(view);
+
   return (
     <AppProvider>
-      <div className="min-h-screen flex flex-col">
-        <Header view={view} setView={(v) => { setView(v); }} onSettings={() => setShowSettings(true)} />
-        <main className="flex-1">
-          {view === 'dashboard' && (
-            <DashboardView
-              setView={setView}
-              setSelectedPeer={setSelectedPeer}
-              openAddEntry={openAddEntry}
-            />
-          )}
-          {view === 'peer-detail' && selectedPeer && (
-            <PeerDetailView
-              peerId={selectedPeer}
-              setView={setView}
-              openAddEntry={openAddEntry}
-            />
-          )}
-          {view === 'peer-detail' && !selectedPeer && (
-            <div className="p-12 text-center text-gray-400">
-              <p className="mb-3">Select a bank from the dashboard to view its detail.</p>
-              <button className="btn btn-primary" onClick={() => setView('dashboard')}>Go to Dashboard</button>
+      <div style={{minHeight:'100vh',background:'#f8fafc'}}>
+        {/* Peer detail has its own back nav */}
+        {view === 'peer-detail' && selectedPeer && (
+          <div className="content-area">
+            <div className="no-print sticky-header" style={{background:'#1B3A6B',color:'white',paddingTop:'calc(env(safe-area-inset-top) + 10px)',paddingBottom:10,paddingLeft:16,paddingRight:16,display:'flex',alignItems:'center',gap:12}}>
+              <button onClick={() => navigate(prevView)} style={{background:'rgba(255,255,255,.15)',border:'none',color:'white',borderRadius:8,padding:'6px 12px',fontSize:13,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',gap:4}}>
+                ← Back
+              </button>
+              <span style={{fontWeight:600,fontSize:15}}>Bank Detail</span>
             </div>
-          )}
-          {view === 'compare' && <ComparisonView />}
-          {view === 'valuation' && <ValuationView />}
-          {view === 'search' && <SearchView setView={setView} setSelectedPeer={setSelectedPeer} />}
-        </main>
+            <PeerDetailView peerId={selectedPeer} setView={navigate} openAddEntry={openAddEntry} />
+          </div>
+        )}
+
+        {view === 'dashboard' && <DashboardView setView={navigate} setSelectedPeer={setSelectedPeer} openAddEntry={openAddEntry} />}
+        {view === 'compare' && (
+          <div className="content-area">
+            <TopHeader title="Compare" subtitle="Cross-peer KPI benchmarking" />
+            <ComparisonView />
+          </div>
+        )}
+        {view === 'intelligence' && <IntelligenceView setView={navigate} setSelectedPeer={setSelectedPeer} />}
+        {view === 'alerts' && <AlertsView />}
+        {view === 'settings' && <SettingsView />}
+
+        {inMain && <BottomNav view={view} setView={navigate} />}
+        {view === 'peer-detail' && <BottomNav view={prevView} setView={navigate} />}
 
         {addEntryPeer !== undefined && (
           <AddEntryModal
             initialPeerId={addEntryPeer}
             onClose={(peerId) => {
               setAddEntryPeer(undefined);
-              if (peerId) { setSelectedPeer(peerId); setView('peer-detail'); }
+              if (peerId) { setSelectedPeer(peerId); navigate('peer-detail'); }
             }}
           />
         )}
-        {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       </div>
     </AppProvider>
   );

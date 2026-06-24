@@ -1,0 +1,17 @@
+{
+  "name": "Peer Earnings Intelligence",
+  "short_name": "PeerEI",
+  "description": "Halyk Bank IR — Peer Earnings Intelligence Platform",
+  "start_url": "/peer-earnings-intelligence/",
+  "scope": "/peer-earnings-intelligence/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1B3A6B",
+  "theme_color": "#1B3A6B",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["finance", "business"],
+  "screenshots": []
+}
