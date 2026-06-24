@@ -83,6 +83,19 @@ const CATEGORY_STYLES = {
 };
 const FILTER_OPTIONS = ['All','Core','CEE','Adjacent'];
 
+const VALUATION_DEFS = [
+  { key:'pe',       label:'P/E',        unit:'x', hib:false, desc:'Price-to-Earnings' },
+  { key:'pb',       label:'P/B',        unit:'x', hib:false, desc:'Price-to-Book' },
+  { key:'divYield', label:'Div Yield',  unit:'%', hib:true,  desc:'Dividend Yield' },
+  { key:'mktCap',   label:'Mkt Cap',    unit:'',  hib:true,  desc:'Market Capitalisation' },
+];
+const PRICE_REACTION_KEYS = [
+  { key:'earningsDay', label:'Earnings Day' },
+  { key:'plus1d',      label:'+1 Day' },
+  { key:'plus5d',      label:'+5 Days' },
+  { key:'plus30d',     label:'+30 Days' },
+];
+
 // ──────────────────────────────────────────────
 // SAMPLE DATA
 // ──────────────────────────────────────────────
@@ -116,6 +129,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management reaffirms FY2026 guidance: ROE 25–28%, loan growth 18–22%, CIR below 30%. Digital transformation continues — mobile MAU reached 8.2mn. Dividend of KZT 380bn approved, representing 40% FY2025 payout ratio.',
     qaSummary:'Analysts focused on NIM sustainability and competitive dynamics with Kaspi in retail. Management emphasized structural funding advantage from salary and pension accounts. Questions on digital banking investment pace and Freedom Holding competitive overlap.',
     investorConcerns:['NIM compression if NBK accelerates rate cuts in 2026','Competitive pressure from Kaspi in retail and SME lending','Digital banking investment ROI and monetization timeline','Capital deployment — dividend growth vs. organic reinvestment','Asset quality in SME book amid macro uncertainty'],
+    valuation:{ pe:4.8, pb:1.0, divYield:9.2, mktCap:4.1, mktCapLabel:'$4.1bn', priceReaction:{ earningsDay:1.8, plus1d:1.2, plus5d:2.4, plus30d:3.1 } },
   }),
   makeE('halyk','Q3',2025,{
     headlineTakeaway:'Solid Q3 with improving cost efficiency and accelerating retail loan growth.',
@@ -130,6 +144,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management maintained FY2025 guidance. Retail and SME growth pipelines strong. Digital wallet and payment infrastructure investments on track for H1 2026 commercialization.',
     qaSummary:'Q&A focused on loan growth sustainability and NIM trajectory. Management noted structural advantage in payroll/pension deposit base. Digital monetization strategy questioned — management flagged 2026 as a transition year.',
     investorConcerns:['NIM stability into 2026 amid NBK easing','Kaspi competitive encroachment in SME','Digital platform monetization timeline','Dividend sustainability vs. growth reinvestment','Macro exposure to Kazakhstan commodity cycle'],
+    valuation:{ pe:4.5, pb:0.95, divYield:8.8, mktCap:3.9, mktCapLabel:'$3.9bn', priceReaction:{ earningsDay:0.9, plus1d:0.4, plus5d:1.1, plus30d:2.8 } },
   }),
   makeE('kaspi','Q3',2025,{
     headlineTakeaway:'Record profitability with NIM expansion and strong digital ecosystem growth.',
@@ -144,6 +159,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management reaffirmed full-year NIM guidance of 17.5–18.5% and loan growth of 25–30%. Focus on expanding the payments infrastructure across Central Asia and deepening the marketplace ecosystem. Capital return policy unchanged at 50% dividend payout ratio.',
     qaSummary:'Analysts focused on sustainability of NIM at elevated levels given NBK rate outlook. Management noted structural advantages from deposit franchise. Questions on Kaspi\'s international expansion into Türkiye and Azerbaijan generated significant discussion. Credit quality probed on SME segment — management guided stable NPL through year-end.',
     investorConcerns:['Sustainability of NIM above 18% if NBK cuts rates in 2026','Execution risk on international expansion (Türkiye, Azerbaijan)','Concentration in consumer lending amid rising household leverage','Regulatory risk around digital payment monopoly position','Dividend capacity as growth requires ongoing reinvestment'],
+    valuation:{ pe:10.2, pb:4.1, divYield:4.8, mktCap:18.5, mktCapLabel:'$18.5bn', priceReaction:{ earningsDay:2.3, plus1d:1.1, plus5d:0.8, plus30d:-1.2 } },
   }),
   makeE('kaspi','Q4',2025,{
     headlineTakeaway:'Full-year NIM beat guidance; strong capital build and accelerating international expansion.',
@@ -158,6 +174,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'FY2026 guidance: loan growth 22–27%, NIM 17.0–18.0%, CIR below 25%. International expansion on track for Q2 2026 commercial launch in Türkiye. Dividend payout to increase to 55% for FY2025, reflecting capital strength.',
     qaSummary:'Q&A centered on FY2026 guidance conservatism and rate sensitivity. Management defended NIM guidance as appropriately cautious given NBK easing cycle risk. International expansion timeline and capital deployment were key themes.',
     investorConcerns:['NIM compression risk in a rate-cutting environment during 2026','International expansion capital requirements and return timeline','Competitive pressure from new digital banks in Kazakhstan','Household debt service capacity given high consumer lending growth','Timing and magnitude of potential NBK rate cuts'],
+    valuation:{ pe:10.8, pb:4.3, divYield:5.2, mktCap:19.2, mktCapLabel:'$19.2bn', priceReaction:{ earningsDay:3.1, plus1d:1.8, plus5d:2.4, plus30d:4.2 } },
   }),
   makeE('tbc','Q3',2025,{
     headlineTakeaway:'Strong loan growth acceleration and stable asset quality across Georgian and Uzbek operations.',
@@ -172,6 +189,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management maintained FY2025 guidance: RoE above 25%, loan growth 15–20%, NIM 8.0–8.5%. TBC Uzbekistan on track to reach profitability by mid-2026. Exploring third market entry in 2026.',
     qaSummary:'Analysts questioned Uzbekistan profitability timeline and capital requirements. Management provided granular cost breakdown and timeline to break-even. Georgian macro resilience discussed — tourism revenues and remittances remain strong.',
     investorConcerns:['Uzbekistan expansion: timeline to profitability and capital absorption','CIR rising trend as investment costs increase','Georgian macro sensitivity to regional geopolitical shifts','Competitive dynamics with Liberty Bank and new fintech entrants','FX risk from GEL/USD dynamics affecting reported earnings'],
+    valuation:{ pe:5.8, pb:1.4, divYield:6.2, mktCap:2.1, mktCapLabel:'$2.1bn', priceReaction:{ earningsDay:1.2, plus1d:0.8, plus5d:1.9, plus30d:2.3 } },
   }),
   makeE('tbc','Q4',2025,{
     headlineTakeaway:'Uzbekistan turns operationally profitable ahead of schedule; record annual RoE delivered.',
@@ -186,6 +204,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management guided FY2026 RoE of 28–32%, an upgrade reflecting Uzbekistan contribution. Third market entry (potentially Azerbaijan or Armenia) flagged for H2 2026. Dividend payout policy unchanged at 30–40% of net income.',
     qaSummary:'Q&A dominated by Uzbekistan profitability milestone and margin outlook. Management presented detailed Uzbek segment P&L for the first time. Third market speculation discussed — management confirmed active evaluation without naming markets.',
     investorConcerns:['Uzbekistan scaling beyond break-even and reaching mature return levels','Capital requirements for third market entry alongside growth','NIM sustainability at 8.5–9.0% amid deposit competition','Geopolitical risk exposure given regional tensions','Execution risk on simultaneous multi-market expansion'],
+    valuation:{ pe:6.1, pb:1.5, divYield:6.5, mktCap:2.3, mktCapLabel:'$2.3bn', priceReaction:{ earningsDay:2.1, plus1d:1.4, plus5d:2.8, plus30d:3.7 } },
   }),
   makeE('lion','Q3',2025,{
     headlineTakeaway:'Solid results with NIM stability and improving capital position amid resilient domestic macro.',
@@ -200,6 +219,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'FY2025 guidance maintained: RoE 22–26%, NIM 7.2–7.6%, loan growth 10–15%. Capital return: 2025 interim dividend announced. Management noted pipeline of mortgage portfolio growth through new partnership channels.',
     qaSummary:'Analysts focused on NIM trajectory given deposit competition from TBC. Management highlighted sticky corporate deposit base as structural advantage. NPL resolution timeline and capital return pace were also discussed.',
     investorConcerns:['NIM pressure from intensifying deposit competition with TBC','Slower loan growth versus TBC — potential market share loss','Capital deployment — buyback vs. dividend vs. organic growth','Corporate credit quality in sectors exposed to regional trade disruption','FX sensitivity on USD-denominated loan book'],
+    valuation:{ pe:5.1, pb:1.2, divYield:7.8, mktCap:1.8, mktCapLabel:'$1.8bn', priceReaction:{ earningsDay:0.8, plus1d:0.3, plus5d:1.1, plus30d:1.9 } },
   }),
   makeE('lion','Q4',2025,{
     headlineTakeaway:'Closed 2025 ahead of guidance; NIM beat and dividend payout at top of the range.',
@@ -214,6 +234,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management upgraded FY2026 RoE guidance to 24–28%, reflecting NIM improvements and cost discipline. Mortgage growth remains a strategic priority. Exploring SME digital platform launch in H1 2026.',
     qaSummary:'Q&A focused on NIM upgrade and 2026 sustainability. Management discussed funding cost outlook with NBG rate trajectory. Mortgage growth strategy questioned — management highlighted pipeline partnerships.',
     investorConcerns:['NIM sustainability at upper end of guidance in rate-cutting scenario','Competitive pressure on deposit rates from TBC and new entrants','Execution on SME digital platform launch','Macro sensitivity to regional risk factors','Capital return policy clarity for 2026'],
+    valuation:{ pe:5.4, pb:1.3, divYield:8.1, mktCap:1.9, mktCapLabel:'$1.9bn', priceReaction:{ earningsDay:1.5, plus1d:0.9, plus5d:2.1, plus30d:2.7 } },
   }),
   makeE('otp','Q4',2025,{
     headlineTakeaway:'OTP closes FY2025 with record profit, driven by CEE diversification and resilient NIM across core markets.',
@@ -228,6 +249,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'FY2026 guidance: ROE 18–21%, loan growth 10–14%, CIR below 45%. Management flagged potential acquisition pipeline in SEE; Serbia and Albania highlighted. Dividend policy maintained at 40–50% payout.',
     qaSummary:'Analysts focused on M&A appetite and capital deployment post-dividend. Management outlined SEE opportunity map without naming specific targets. Hungarian macro sensitivity questioned — management highlighted portfolio diversification as buffer.',
     investorConcerns:['M&A execution risk in SEE expansion','NIM pressure from ECB rate cuts flowing through to Hungarian market','Hungarian macro-political risks impacting regulatory environment','CIR improvement sustainability at scale','FX translation risk across multi-currency CEE portfolio'],
+    valuation:{ pe:7.2, pb:1.3, divYield:5.8, mktCap:15.1, mktCapLabel:'$15.1bn', priceReaction:{ earningsDay:1.9, plus1d:1.1, plus5d:1.8, plus30d:2.4 } },
   }),
   makeE('pko','Q4',2025,{
     headlineTakeaway:'PKO delivers strong FY2025 amid Polish rate stability; cost discipline and loan growth beat consensus.',
@@ -242,6 +264,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'FY2026 guidance: ROE 16–18%, loan growth 10–13%, NIM 4.6–5.0%. Buyback programme of PLN 1.5bn announced for H1 2026. Continued investment in AI-driven credit decisioning.',
     qaSummary:'Q&A centred on buyback programme size and capital return cadence. Management discussed Swiss franc mortgage legacy book resolution progress — PLN 3.2bn provision still outstanding. NIM guidance for 2026 questioned given NBP rate cut expectations.',
     investorConcerns:['Swiss franc mortgage legacy provision uncertainty','NIM compression if NBP cuts rates in H2 2026','Buyback pace and capital return predictability','Digital transformation ROI versus investment costs','Competitive pressure from Pekao and Santander in mortgage market'],
+    valuation:{ pe:8.1, pb:1.4, divYield:6.2, mktCap:12.3, mktCapLabel:'$12.3bn', priceReaction:{ earningsDay:1.4, plus1d:0.7, plus5d:1.3, plus30d:1.8 } },
   }),
   makeE('frhc','Q4',2025,{
     headlineTakeaway:'Freedom Holding posts strong brokerage growth; Kazakhstan segment accelerates as financial super-app gains traction.',
@@ -256,6 +279,7 @@ const SAMPLE_ENTRIES = [
     strategyGuidance:'Management guiding FY2026 (March 2026 year-end) revenue of $1.7–1.8bn and net income of $360–380mn. Kazakhstan super-app expansion accelerating; insurance and payments deepening. No guidance on dividends — reinvestment focus maintained.',
     qaSummary:'Analysts probed regulatory risk in US operations and SEC oversight. Management provided update on compliance programme investment. Kazakhstan growth trajectory discussed — management noted structural advantage from first-mover brokerage position.',
     investorConcerns:['US regulatory and SEC compliance risk','Kazakhstan competitive overlap with Halyk and Kaspi in banking','Valuation premium sustainability given growth rate deceleration risk','Geopolitical risk on US-listed Kazakh financial entity','Revenue concentration in brokerage vs. banking diversification pace'],
+    valuation:{ pe:12.4, pb:2.8, divYield:0, mktCap:2.9, mktCapLabel:'$2.9bn', priceReaction:{ earningsDay:3.2, plus1d:1.8, plus5d:2.1, plus30d:-0.8 } },
   }),
 ];
 
@@ -375,9 +399,10 @@ const Icons = {
 // ──────────────────────────────────────────────
 function Header({ view, setView, onSettings }) {
   const navItems = [
-    { id:'dashboard', label:'Dashboard', Icon: Icons.Dashboard },
-    { id:'compare',   label:'Compare',   Icon: Icons.Compare },
-    { id:'search',    label:'Search',    Icon: Icons.Search },
+    { id:'dashboard',  label:'Dashboard',  Icon: Icons.Dashboard },
+    { id:'compare',    label:'Compare',    Icon: Icons.Compare },
+    { id:'valuation',  label:'Valuation',  Icon: Icons.Star },
+    { id:'search',     label:'Search',     Icon: Icons.Search },
   ];
   return (
     <header className="bg-navy-600 text-white no-print" style={{background:'#1B3A6B'}}>
@@ -633,12 +658,16 @@ function PeerDetailView({ peerId, setView, openAddEntry }) {
   if (!peer) return <div className="p-8 text-gray-500">Peer not found.</div>;
 
   const tabs = [
-    { id:'summary',  label:'Earnings Summary' },
-    { id:'kpis',     label:'KPI Table' },
-    { id:'strategy', label:'Strategy & Guidance' },
-    { id:'qa',       label:'Q&A Summary' },
-    { id:'concerns', label:'Investor Concerns' },
+    { id:'summary',   label:'Earnings Summary' },
+    { id:'kpis',      label:'KPI Table' },
+    { id:'valuation', label:'Valuation' },
+    { id:'strategy',  label:'Strategy & Guidance' },
+    { id:'qa',        label:'Q&A Summary' },
+    { id:'concerns',  label:'Investor Concerns' },
   ];
+
+  const currentEntryIdx = allEntries.findIndex(e => e.id === entry?.id);
+  const prevEntry = currentEntryIdx >= 0 ? allEntries[currentEntryIdx + 1] : null;
 
   function handleKPIChange(key, field, val) {
     setDraft(d => ({ ...d, kpis: { ...d.kpis, [key]: { ...(d.kpis[key] || {}), [field]: val } } }));
@@ -770,6 +799,111 @@ function PeerDetailView({ peerId, setView, openAddEntry }) {
               {/* KPIs */}
               {activeTab === 'kpis' && (
                 <KPITable kpis={current.kpis} editing={editing} onChange={handleKPIChange} />
+              )}
+
+              {/* Valuation */}
+              {activeTab === 'valuation' && (
+                <div>
+                  <div className="grid grid-cols-2 gap-3 mb-5 sm:grid-cols-4">
+                    {VALUATION_DEFS.map(def => {
+                      const v = current.valuation?.[def.key];
+                      const pv = prevEntry?.valuation?.[def.key];
+                      const qoq = v != null && pv != null ? v - pv : null;
+                      return (
+                        <div key={def.key} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                          <div className="text-xs text-gray-500 mb-1">{def.label}</div>
+                          {editing ? (
+                            <div>
+                              <input type="text" style={{fontSize:'13px', padding:'4px 8px', marginBottom:'4px'}}
+                                value={draft.valuation?.[def.key] ?? ''}
+                                placeholder="—"
+                                onChange={e => { const val = e.target.value === '' ? null : parseFloat(e.target.value); setDraft(d => ({...d, valuation:{...(d.valuation||EMPTY_VALUATION()),[def.key]:val}})); }} />
+                              {def.key === 'mktCap' && (
+                                <input type="text" style={{fontSize:'11px', padding:'3px 6px'}}
+                                  value={draft.valuation?.mktCapLabel ?? ''} placeholder="e.g. $4.1bn"
+                                  onChange={e => setDraft(d => ({...d, valuation:{...(d.valuation||EMPTY_VALUATION()),mktCapLabel:e.target.value}}))} />
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-lg font-bold text-gray-900">
+                                {def.key === 'mktCap'
+                                  ? (current.valuation?.mktCapLabel || (v != null ? `$${v.toFixed(1)}bn` : '—'))
+                                  : v != null ? `${v.toFixed(def.key === 'pb' ? 2 : 1)}${def.unit}` : '—'}
+                              </div>
+                              {qoq != null && (
+                                <div className={`text-xs font-medium ${(!def.hib && qoq < 0) || (def.hib && qoq > 0) ? 'kpi-up' : (!def.hib && qoq > 0) || (def.hib && qoq < 0) ? 'kpi-down' : 'kpi-neutral'}`}>
+                                  {qoq > 0 ? '↑' : '↓'} {Math.abs(qoq).toFixed(def.key === 'pb' ? 2 : 1)} QoQ
+                                </div>
+                              )}
+                              {pv != null && <div className="text-xs text-gray-400 mt-0.5">Prev: {pv.toFixed(def.key === 'pb' ? 2 : 1)}{def.unit}</div>}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Share Price Reaction</div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-5">
+                    {PRICE_REACTION_KEYS.map(({ key, label }) => {
+                      const v = current.valuation?.priceReaction?.[key];
+                      return (
+                        <div key={key} className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-center">
+                          <div className="text-xs text-gray-500 mb-1">{label}</div>
+                          {editing ? (
+                            <input type="text" style={{fontSize:'13px', padding:'4px 8px', textAlign:'center'}}
+                              value={draft.valuation?.priceReaction?.[key] ?? ''} placeholder="—"
+                              onChange={e => { const val = e.target.value === '' ? null : parseFloat(e.target.value); setDraft(d => ({...d, valuation:{...(d.valuation||EMPTY_VALUATION()),priceReaction:{...(d.valuation?.priceReaction||{}),[key]:val}}})); }} />
+                          ) : v != null ? (
+                            <div className={`text-lg font-bold ${v > 0 ? 'kpi-up' : v < 0 ? 'kpi-down' : 'kpi-neutral'}`}>
+                              {v > 0 ? '+' : ''}{v.toFixed(1)}%
+                            </div>
+                          ) : <div className="text-lg font-bold text-gray-300">—</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {allEntries.length > 1 && (
+                    <div>
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Historical Trend</div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-2 pr-4 font-medium text-gray-500 text-xs">Quarter</th>
+                              {VALUATION_DEFS.map(d => <th key={d.key} className="text-right py-2 px-3 font-medium text-gray-500 text-xs">{d.label}</th>)}
+                              {PRICE_REACTION_KEYS.map(d => <th key={d.key} className="text-right py-2 px-3 font-medium text-gray-500 text-xs">{d.label}</th>)}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allEntries.map((e, i) => (
+                              <tr key={e.id} className={`border-b border-gray-50 ${e.id === entry.id ? 'bg-blue-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                <td className="py-2 pr-4 font-medium text-gray-800 text-xs">{e.quarter} {e.year}</td>
+                                {VALUATION_DEFS.map(d => (
+                                  <td key={d.key} className="text-right py-2 px-3 text-xs text-gray-800">
+                                    {d.key === 'mktCap'
+                                      ? (e.valuation?.mktCapLabel || (e.valuation?.mktCap != null ? `$${e.valuation.mktCap.toFixed(1)}bn` : '—'))
+                                      : e.valuation?.[d.key] != null ? `${e.valuation[d.key].toFixed(d.key === 'pb' ? 2 : 1)}${d.unit}` : '—'}
+                                  </td>
+                                ))}
+                                {PRICE_REACTION_KEYS.map(d => {
+                                  const rv = e.valuation?.priceReaction?.[d.key];
+                                  return (
+                                    <td key={d.key} className={`text-right py-2 px-3 text-xs font-medium ${rv > 0 ? 'kpi-up' : rv < 0 ? 'kpi-down' : 'kpi-neutral'}`}>
+                                      {rv != null ? `${rv > 0 ? '+' : ''}${rv.toFixed(1)}%` : '—'}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Strategy */}
@@ -1134,6 +1268,7 @@ function SearchView({ setView, setSelectedPeer }) {
 // ADD ENTRY MODAL (AI-assisted)
 // ──────────────────────────────────────────────
 const EMPTY_KPIS = () => Object.fromEntries(KPI_DEFS.map(d => [d.key, { v: null, qoq: null, yoy: null }]));
+const EMPTY_VALUATION = () => ({ pe:null, pb:null, divYield:null, mktCap:null, mktCapLabel:'', priceReaction:{ earningsDay:null, plus1d:null, plus5d:null, plus30d:null } });
 
 function AddEntryModal({ initialPeerId, onClose }) {
   const { peers, saveEntry, apiKey } = useContext(AppCtx);
@@ -1151,6 +1286,7 @@ function AddEntryModal({ initialPeerId, onClose }) {
     strategyGuidance: '',
     qaSummary: '',
     investorConcerns: ['', '', '', '', ''],
+    valuation: EMPTY_VALUATION(),
   });
 
   const peer = peers.find(p => p.id === peerId);
@@ -1361,6 +1497,37 @@ ${sourceText.slice(0, 15000)}`;
                 )}
               </div>
 
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">Valuation Multiples <span className="text-gray-400 font-normal">(optional)</span></label>
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {VALUATION_DEFS.map(def => (
+                    <div key={def.key} className="p-2 bg-slate-50 rounded border border-slate-100">
+                      <div className="text-xs font-medium text-gray-600 mb-1">{def.label}</div>
+                      <input type="text" style={{fontSize:'12px', padding:'4px 6px'}}
+                        value={form.valuation?.[def.key] ?? ''} placeholder={def.unit || '—'}
+                        onChange={e => { const val = e.target.value === '' ? null : parseFloat(e.target.value); setForm(f => ({...f, valuation:{...f.valuation,[def.key]:val}})); }} />
+                      {def.key === 'mktCap' && (
+                        <input type="text" style={{fontSize:'11px', padding:'3px 6px', marginTop:'4px'}}
+                          value={form.valuation?.mktCapLabel ?? ''} placeholder="e.g. $4.1bn"
+                          onChange={e => setForm(f => ({...f, valuation:{...f.valuation,mktCapLabel:e.target.value}}))} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs font-medium text-gray-600 mb-1 mt-3">Share Price Reaction</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {PRICE_REACTION_KEYS.map(({ key, label }) => (
+                    <div key={key} className="p-2 bg-slate-50 rounded border border-slate-100">
+                      <div className="text-xs font-medium text-gray-600 mb-1">{label}</div>
+                      <input type="text" style={{fontSize:'12px', padding:'4px 6px'}}
+                        value={form.valuation?.priceReaction?.[key] ?? ''} placeholder="%"
+                        onChange={e => { const val = e.target.value === '' ? null : parseFloat(e.target.value); setForm(f => ({...f, valuation:{...f.valuation,priceReaction:{...f.valuation.priceReaction,[key]:val}}})); }} />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Price reaction values are % changes from pre-announcement close.</p>
+              </div>
+
               <div className="flex gap-3 pt-2 border-t border-gray-100">
                 <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
                 <button className="btn btn-primary flex-1" onClick={handleSave}>Save Entry</button>
@@ -1483,6 +1650,321 @@ function SettingsModal({ onClose }) {
 }
 
 // ──────────────────────────────────────────────
+// VALUATION VIEW
+// ──────────────────────────────────────────────
+function ValuationView() {
+  const { peers, entries, allQuarters } = useContext(AppCtx);
+  const [selectedQ, setSelectedQ] = useState(allQuarters[0] ? `${allQuarters[0].year}-${allQuarters[0].quarter}` : '');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const qEntry = useMemo(() => {
+    if (!selectedQ) return null;
+    const [year, quarter] = selectedQ.split('-');
+    return { year: parseInt(year), quarter };
+  }, [selectedQ]);
+
+  const peerValuations = useMemo(() => {
+    if (!qEntry) return [];
+    return peers.map(p => {
+      const entry = entries.find(e => e.peerId === p.id && e.quarter === qEntry.quarter && e.year === qEntry.year);
+      const val = entry?.valuation;
+      if (!val) return null;
+      const sorted = entries.filter(e => e.peerId === p.id).sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return QUARTER_ORDER[b.quarter] - QUARTER_ORDER[a.quarter];
+      });
+      const idx = sorted.findIndex(e => e.id === entry.id);
+      const prevVal = idx >= 0 ? sorted[idx + 1]?.valuation : null;
+      return { peer: p, val, prevVal };
+    }).filter(Boolean);
+  }, [peers, entries, qEntry]);
+
+  const halykPV = peerValuations.find(x => x.peer.isHome);
+
+  const peerAvg = useMemo(() => {
+    const others = peerValuations.filter(x => !x.peer.isHome);
+    if (!others.length) return null;
+    const avg = key => { const vals = others.map(x => x.val[key]).filter(v => v != null); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null; };
+    return { pe: avg('pe'), pb: avg('pb'), divYield: avg('divYield') };
+  }, [peerValuations]);
+
+  const relativeText = useMemo(() => {
+    if (!halykPV?.val || !peerAvg) return null;
+    const { pe: hPE, pb: hPB, divYield: hDY } = halykPV.val;
+    const parts = [];
+    if (hPE != null && peerAvg.pe != null) {
+      const diff = ((hPE - peerAvg.pe) / peerAvg.pe * 100);
+      parts.push(`Halyk trades at a ${Math.abs(diff).toFixed(1)}% ${diff < 0 ? 'discount' : 'premium'} to peer average P/E of ${peerAvg.pe.toFixed(1)}x (Halyk: ${hPE.toFixed(1)}x).`);
+    }
+    if (hPB != null && peerAvg.pb != null) {
+      const diff = ((hPB - peerAvg.pb) / peerAvg.pb * 100);
+      parts.push(`On P/B, Halyk is at ${hPB.toFixed(2)}x vs peer average ${peerAvg.pb.toFixed(2)}x — a ${Math.abs(diff).toFixed(1)}% ${diff < 0 ? 'discount' : 'premium'}.`);
+    }
+    if (hDY != null && peerAvg.divYield != null) {
+      parts.push(`Dividend yield of ${hDY.toFixed(1)}% compares to peer average of ${peerAvg.divYield.toFixed(1)}%.`);
+    }
+    return parts.join(' ');
+  }, [halykPV, peerAvg]);
+
+  const rankings = useMemo(() => {
+    const w = peerValuations.filter(x => x.val);
+    return {
+      byPE: [...w].filter(x => x.val.pe != null).sort((a, b) => a.val.pe - b.val.pe),
+      byPB: [...w].filter(x => x.val.pb != null).sort((a, b) => a.val.pb - b.val.pb),
+      byDY: [...w].filter(x => x.val.divYield != null).sort((a, b) => b.val.divYield - a.val.divYield),
+    };
+  }, [peerValuations]);
+
+  const tabs = [
+    { id:'overview',    label:'Current Valuation' },
+    { id:'comparison',  label:'Peer Comparison' },
+    { id:'reaction',    label:'Price Reaction' },
+    { id:'rankings',    label:'Rankings' },
+  ];
+
+  const sortedPVs = useMemo(() => [...peerValuations].sort((a, b) => (b.peer.isHome ? 1 : 0) - (a.peer.isHome ? 1 : 0)), [peerValuations]);
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Valuation &amp; Market Intelligence</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Market multiples, price reactions, and relative valuation</p>
+        </div>
+        <select value={selectedQ} onChange={e => setSelectedQ(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
+          {allQuarters.map(({ year, quarter }) => (
+            <option key={`${year}-${quarter}`} value={`${year}-${quarter}`}>{quarter} {year}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Halyk Relative Valuation Banner */}
+      {relativeText && (
+        <div className="card p-4 mb-5" style={{borderLeft:'4px solid #1B3A6B', background:'#f8faff'}}>
+          <div className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs flex-shrink-0 mt-0.5" style={{background:'#1B3A6B'}}>H</div>
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Halyk Relative Valuation — Auto-generated</div>
+              <p className="text-sm text-gray-800 leading-relaxed">{relativeText}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2 mb-4 border-b border-gray-200 no-print">
+        {tabs.map(t => (
+          <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {peerValuations.length === 0 && (
+        <div className="card p-12 text-center text-gray-400">No valuation data for this quarter. Add valuation fields when creating entries.</div>
+      )}
+
+      {/* Current Valuation */}
+      {activeTab === 'overview' && peerValuations.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead style={{background:'#f8fafc'}}>
+                <tr>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Bank</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/E</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/B</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Div Yield</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Mkt Cap</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/E QoQ</th>
+                  <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/B QoQ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedPVs.map(({ peer, val, prevVal }, i) => (
+                  <tr key={peer.id} className={`${peer.isHome ? 'bg-blue-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{background: peer.color}}>{(peer.initials||'?')[0]}</div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-xs">{peer.flag} {peer.name}</div>
+                          <div className="text-xs text-gray-400">{peer.ticker}</div>
+                        </div>
+                        {peer.isHome && <span className="text-xs text-blue-600 font-medium ml-1">Home</span>}
+                      </div>
+                    </td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.pe != null ? `${val.pe.toFixed(1)}x` : '—'}</td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.pb != null ? `${val.pb.toFixed(2)}x` : '—'}</td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.divYield != null ? `${val.divYield.toFixed(1)}%` : '—'}</td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.mktCapLabel || (val.mktCap != null ? `$${val.mktCap.toFixed(1)}bn` : '—')}</td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 text-xs">
+                      {prevVal?.pe != null && val.pe != null ? (
+                        <span className={val.pe < prevVal.pe ? 'kpi-up' : 'kpi-down'}>{val.pe < prevVal.pe ? '↓' : '↑'} {Math.abs(val.pe - prevVal.pe).toFixed(1)}x</span>
+                      ) : <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="text-center py-3 px-3 border-b border-gray-50 text-xs">
+                      {prevVal?.pb != null && val.pb != null ? (
+                        <span className={val.pb < prevVal.pb ? 'kpi-up' : 'kpi-down'}>{val.pb < prevVal.pb ? '↓' : '↑'} {Math.abs(val.pb - prevVal.pb).toFixed(2)}x</span>
+                      ) : <span className="text-gray-300">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Peer Comparison — Premium/Discount vs Halyk */}
+      {activeTab === 'comparison' && (
+        !halykPV ? (
+          <div className="card p-8 text-center text-gray-400">No Halyk valuation data for this quarter.</div>
+        ) : (
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead style={{background:'#f8fafc'}}>
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Peer Bank</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/E</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">vs Halyk P/E</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">P/B</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">vs Halyk P/B</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Div Yield</th>
+                    <th className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">vs Halyk DY</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedPVs.map(({ peer, val }, i) => {
+                    const isHome = peer.isHome;
+                    const hV = halykPV.val;
+                    const peDiff = !isHome && hV.pe && val.pe ? ((val.pe - hV.pe) / hV.pe * 100) : null;
+                    const pbDiff = !isHome && hV.pb && val.pb ? ((val.pb - hV.pb) / hV.pb * 100) : null;
+                    const dyDiff = !isHome && val.divYield != null && hV.divYield != null ? val.divYield - hV.divYield : null;
+                    return (
+                      <tr key={peer.id} className={`${isHome ? 'bg-blue-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                        <td className="py-3 px-4 border-b border-gray-50">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{background: peer.color}}>{(peer.initials||'?')[0]}</div>
+                            <span className="font-medium text-gray-900 text-xs">{peer.flag} {peer.name}</span>
+                            {isHome && <span className="text-xs text-blue-600 font-medium">(Home)</span>}
+                          </div>
+                        </td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.pe != null ? `${val.pe.toFixed(1)}x` : '—'}</td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50">
+                          {isHome ? <span className="text-xs text-gray-300">baseline</span> : peDiff != null ? (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${peDiff > 0 ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
+                              {peDiff > 0 ? '+' : ''}{peDiff.toFixed(1)}%
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.pb != null ? `${val.pb.toFixed(2)}x` : '—'}</td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50">
+                          {isHome ? <span className="text-xs text-gray-300">baseline</span> : pbDiff != null ? (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pbDiff > 0 ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
+                              {pbDiff > 0 ? '+' : ''}{pbDiff.toFixed(1)}%
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50 font-semibold text-sm">{val.divYield != null ? `${val.divYield.toFixed(1)}%` : '—'}</td>
+                        <td className="text-center py-3 px-3 border-b border-gray-50">
+                          {isHome ? <span className="text-xs text-gray-300">baseline</span> : dyDiff != null ? (
+                            <span className={`text-xs font-medium ${dyDiff > 0 ? 'kpi-up' : 'kpi-down'}`}>{dyDiff > 0 ? '+' : ''}{dyDiff.toFixed(1)}pp</span>
+                          ) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      )}
+
+      {/* Price Reaction */}
+      {activeTab === 'reaction' && peerValuations.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead style={{background:'#f8fafc'}}>
+                <tr>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">Bank</th>
+                  {PRICE_REACTION_KEYS.map(({ key, label }) => (
+                    <th key={key} className="text-center py-3 px-3 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">{label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedPVs.map(({ peer, val }, i) => {
+                  const r = val.priceReaction || {};
+                  const fmt = v => v != null ? (
+                    <span className={`font-semibold ${v > 0 ? 'kpi-up' : v < 0 ? 'kpi-down' : 'kpi-neutral'}`}>{v > 0 ? '+' : ''}{v.toFixed(1)}%</span>
+                  ) : <span className="text-gray-300">—</span>;
+                  return (
+                    <tr key={peer.id} className={`${peer.isHome ? 'bg-blue-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                      <td className="py-3 px-4 border-b border-gray-50">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{background: peer.color}}>{(peer.initials||'?')[0]}</div>
+                          <span className="font-medium text-gray-900 text-xs">{peer.flag} {peer.name}</span>
+                          {peer.isHome && <span className="text-xs text-blue-600 font-medium">Home</span>}
+                        </div>
+                      </td>
+                      {PRICE_REACTION_KEYS.map(({ key }) => (
+                        <td key={key} className="text-center py-3 px-3 border-b border-gray-50">{fmt(r[key])}</td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Rankings */}
+      {activeTab === 'rankings' && peerValuations.length > 0 && (
+        <div className="grid gap-5" style={{gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))'}}>
+          {[
+            { key:'byPE', label:'P/E Ranking', valFn: x => x.val.pe,       fmt: v => `${v.toFixed(1)}x` },
+            { key:'byPB', label:'P/B Ranking', valFn: x => x.val.pb,       fmt: v => `${v.toFixed(2)}x` },
+            { key:'byDY', label:'Dividend Yield Ranking', valFn: x => x.val.divYield, fmt: v => `${v.toFixed(1)}%` },
+          ].map(({ key, label, valFn, fmt }) => {
+            const ranked = rankings[key];
+            const maxVal = Math.max(...ranked.map(x => valFn(x) || 0));
+            return (
+              <div key={key} className="card p-4">
+                <div className="text-sm font-semibold text-gray-800 mb-3">{label}</div>
+                <div className="space-y-2">
+                  {ranked.map(({ peer, val }, idx) => {
+                    const value = valFn({ val });
+                    const barPct = maxVal > 0 ? Math.round((value / maxVal) * 100) : 0;
+                    return (
+                      <div key={peer.id} className={`flex items-center gap-2 p-2 rounded ${peer.isHome ? 'bg-blue-50 border border-blue-100' : ''}`}>
+                        <span className="text-xs font-bold text-gray-400 w-4 text-center">{idx + 1}</span>
+                        <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{background: peer.color}}>{(peer.initials||'?')[0]}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-xs font-medium text-gray-800 truncate">{peer.flag} {peer.ticker || peer.name}</span>
+                            <span className="text-xs font-bold text-gray-900 ml-2">{fmt(value)}</span>
+                          </div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{width:`${barPct}%`, background: peer.color}}></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // APP ROOT
 // ──────────────────────────────────────────────
 function App() {
@@ -1519,6 +2001,7 @@ function App() {
             </div>
           )}
           {view === 'compare' && <ComparisonView />}
+          {view === 'valuation' && <ValuationView />}
           {view === 'search' && <SearchView setView={setView} setSelectedPeer={setSelectedPeer} />}
         </main>
 
