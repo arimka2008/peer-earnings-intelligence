@@ -74,17 +74,28 @@ const KPI_DEFS = [
 ];
 
 const QUARTER_ORDER = { Q1:1, Q2:2, Q3:3, Q4:4 };
-const PEER_COLORS = ['#E63946','#2563EB','#0EA5E9','#16A34A','#9333EA','#F59E0B','#64748B'];
-const REGIONS = ['All Regions','Kazakhstan','Georgia','Russia','CEE/CIS'];
+const PEER_COLORS = ['#1B3A6B','#E63946','#2563EB','#0EA5E9','#16A34A','#9333EA','#F59E0B','#64748B','#DC2626'];
+const CATEGORIES = { core:'Core Peer', cee:'CEE Peer', adjacent:'Adjacent Financial' };
+const CATEGORY_STYLES = {
+  core:     { bg:'#EFF6FF', text:'#1D4ED8', border:'#BFDBFE' },
+  cee:      { bg:'#F5F3FF', text:'#7C3AED', border:'#DDD6FE' },
+  adjacent: { bg:'#FFF7ED', text:'#C2410C', border:'#FED7AA' },
+};
+const FILTER_OPTIONS = ['All','Core','CEE','Adjacent'];
 
 // ──────────────────────────────────────────────
 // SAMPLE DATA
 // ──────────────────────────────────────────────
 const DEFAULT_PEERS = [
-  { id:'kaspi', name:'Kaspi Bank',        region:'Kazakhstan', initials:'KB',  color:'#E63946' },
-  { id:'tbc',   name:'TBC Bank',          region:'Georgia',    initials:'TBC', color:'#2563EB' },
-  { id:'bog',   name:'Bank of Georgia',   region:'Georgia',    initials:'BoG', color:'#0EA5E9' },
-  { id:'sber',  name:'Sberbank',          region:'Russia',     initials:'SB',  color:'#16A34A' },
+  { id:'halyk', name:'Halyk Bank',         ticker:'HSBK', country:'Kazakhstan', flag:'🇰🇿', category:'core',     initials:'HB',  color:'#1B3A6B', isHome:true },
+  { id:'kaspi', name:'Kaspi.kz',           ticker:'KSPI', country:'Kazakhstan', flag:'🇰🇿', category:'core',     initials:'KZ',  color:'#E63946' },
+  { id:'tbc',   name:'TBC Bank Group',     ticker:'TBCG', country:'Georgia',    flag:'🇬🇪', category:'core',     initials:'TBC', color:'#2563EB' },
+  { id:'lion',  name:'Lion Finance Group', ticker:'BGEO', country:'Georgia',    flag:'🇬🇪', category:'core',     initials:'LFG', color:'#0EA5E9' },
+  { id:'otp',   name:'OTP Bank',           ticker:'OTP',  country:'Hungary',    flag:'🇭🇺', category:'core',     initials:'OTP', color:'#16A34A' },
+  { id:'pko',   name:'PKO Bank Polski',    ticker:'PKO',  country:'Poland',     flag:'🇵🇱', category:'cee',      initials:'PKO', color:'#9333EA' },
+  { id:'pekao', name:'Bank Pekao',         ticker:'PEO',  country:'Poland',     flag:'🇵🇱', category:'cee',      initials:'PEO', color:'#7C3AED' },
+  { id:'kb',    name:'Komercni Banka',     ticker:'KOMB', country:'Czech Rep.', flag:'🇨🇿', category:'cee',      initials:'KB',  color:'#64748B' },
+  { id:'frhc',  name:'Freedom Holding',   ticker:'FRHC', country:'Kazakhstan', flag:'🇰🇿', category:'adjacent', initials:'FH',  color:'#DC2626' },
 ];
 
 function makeE(peerId, q, y, d) {
@@ -92,6 +103,34 @@ function makeE(peerId, q, y, d) {
 }
 
 const SAMPLE_ENTRIES = [
+  makeE('halyk','Q4',2025,{
+    headlineTakeaway:'Halyk delivers record FY2025 profit with NIM resilience and strong capital generation.',
+    earningsSummary:[
+      'FY2025 net income KZT 952bn (+19% YoY); Q4 net income KZT 261bn (+4.8% QoQ).',
+      'NIM stable at 5.8% despite NBK rate volatility — deposit mix management a key driver.',
+      'CET1 at 20.1%, well above regulatory minimum; board approved KZT 380bn dividend.',
+      'Retail loan growth 21% YoY; SME segment up 18% — both ahead of guidance.',
+      'FY2026 guidance: ROE 25–28%, loan growth 18–22%, cost-to-income below 30%.',
+    ],
+    kpis:{ nim:{v:5.8,qoq:+0.1,yoy:-0.2}, roe:{v:27.4,qoq:+0.6,yoy:+2.1}, roa:{v:3.8,qoq:+0.1,yoy:+0.3}, costToIncome:{v:28.6,qoq:-0.9,yoy:-1.8}, nplRatio:{v:5.2,qoq:-0.3,yoy:-0.8}, cet1:{v:20.1,qoq:+0.5,yoy:+1.4}, loanGrowth:{v:20.4,qoq:null,yoy:+20.4}, netIncome:{v:261,qoq:+4.8,yoy:+19.0,label:'KZT 261bn'} },
+    strategyGuidance:'Management reaffirms FY2026 guidance: ROE 25–28%, loan growth 18–22%, CIR below 30%. Digital transformation continues — mobile MAU reached 8.2mn. Dividend of KZT 380bn approved, representing 40% FY2025 payout ratio.',
+    qaSummary:'Analysts focused on NIM sustainability and competitive dynamics with Kaspi in retail. Management emphasized structural funding advantage from salary and pension accounts. Questions on digital banking investment pace and Freedom Holding competitive overlap.',
+    investorConcerns:['NIM compression if NBK accelerates rate cuts in 2026','Competitive pressure from Kaspi in retail and SME lending','Digital banking investment ROI and monetization timeline','Capital deployment — dividend growth vs. organic reinvestment','Asset quality in SME book amid macro uncertainty'],
+  }),
+  makeE('halyk','Q3',2025,{
+    headlineTakeaway:'Solid Q3 with improving cost efficiency and accelerating retail loan growth.',
+    earningsSummary:[
+      'Q3 net income KZT 249bn (+17% YoY), driven by NII growth and disciplined cost control.',
+      'NIM held at 5.7% despite higher funding costs — retail repricing and deposit mix stabilizing.',
+      'Cost-to-income improved to 29.5%, ahead of FY guidance of sub-30%.',
+      'NPL improved to 5.5% — write-off activity and improving SME borrower quality.',
+      'Mobile banking MAU reached 7.8mn (+23% YoY).',
+    ],
+    kpis:{ nim:{v:5.7,qoq:0,yoy:-0.1}, roe:{v:26.8,qoq:+0.4,yoy:+1.8}, roa:{v:3.7,qoq:+0.1,yoy:+0.2}, costToIncome:{v:29.5,qoq:-0.8,yoy:-2.1}, nplRatio:{v:5.5,qoq:-0.2,yoy:-0.7}, cet1:{v:19.6,qoq:+0.3,yoy:+1.2}, loanGrowth:{v:18.9,qoq:null,yoy:+18.9}, netIncome:{v:249,qoq:+3.2,yoy:+17.0,label:'KZT 249bn'} },
+    strategyGuidance:'Management maintained FY2025 guidance. Retail and SME growth pipelines strong. Digital wallet and payment infrastructure investments on track for H1 2026 commercialization.',
+    qaSummary:'Q&A focused on loan growth sustainability and NIM trajectory. Management noted structural advantage in payroll/pension deposit base. Digital monetization strategy questioned — management flagged 2026 as a transition year.',
+    investorConcerns:['NIM stability into 2026 amid NBK easing','Kaspi competitive encroachment in SME','Digital platform monetization timeline','Dividend sustainability vs. growth reinvestment','Macro exposure to Kazakhstan commodity cycle'],
+  }),
   makeE('kaspi','Q3',2025,{
     headlineTakeaway:'Record profitability with NIM expansion and strong digital ecosystem growth.',
     earningsSummary:[
@@ -148,7 +187,7 @@ const SAMPLE_ENTRIES = [
     qaSummary:'Q&A dominated by Uzbekistan profitability milestone and margin outlook. Management presented detailed Uzbek segment P&L for the first time. Third market speculation discussed — management confirmed active evaluation without naming markets.',
     investorConcerns:['Uzbekistan scaling beyond break-even and reaching mature return levels','Capital requirements for third market entry alongside growth','NIM sustainability at 8.5–9.0% amid deposit competition','Geopolitical risk exposure given regional tensions','Execution risk on simultaneous multi-market expansion'],
   }),
-  makeE('bog','Q3',2025,{
+  makeE('lion','Q3',2025,{
     headlineTakeaway:'Solid results with NIM stability and improving capital position amid resilient domestic macro.',
     earningsSummary:[
       'Q3 net income GEL 294mn (+14% YoY), supported by broad-based NII and fee growth.',
@@ -162,7 +201,7 @@ const SAMPLE_ENTRIES = [
     qaSummary:'Analysts focused on NIM trajectory given deposit competition from TBC. Management highlighted sticky corporate deposit base as structural advantage. NPL resolution timeline and capital return pace were also discussed.',
     investorConcerns:['NIM pressure from intensifying deposit competition with TBC','Slower loan growth versus TBC — potential market share loss','Capital deployment — buyback vs. dividend vs. organic growth','Corporate credit quality in sectors exposed to regional trade disruption','FX sensitivity on USD-denominated loan book'],
   }),
-  makeE('bog','Q4',2025,{
+  makeE('lion','Q4',2025,{
     headlineTakeaway:'Closed 2025 ahead of guidance; NIM beat and dividend payout at top of the range.',
     earningsSummary:[
       'Q4 net income GEL 320mn (+8.8% QoQ, +16% YoY); FY2025 net income GEL 1,182mn.',
@@ -176,33 +215,47 @@ const SAMPLE_ENTRIES = [
     qaSummary:'Q&A focused on NIM upgrade and 2026 sustainability. Management discussed funding cost outlook with NBG rate trajectory. Mortgage growth strategy questioned — management highlighted pipeline partnerships.',
     investorConcerns:['NIM sustainability at upper end of guidance in rate-cutting scenario','Competitive pressure on deposit rates from TBC and new entrants','Execution on SME digital platform launch','Macro sensitivity to regional risk factors','Capital return policy clarity for 2026'],
   }),
-  makeE('sber','Q3',2025,{
-    headlineTakeaway:'Mixed quarter: NIM under pressure from funding costs but profit resilient on non-interest income diversification.',
+  makeE('otp','Q4',2025,{
+    headlineTakeaway:'OTP closes FY2025 with record profit, driven by CEE diversification and resilient NIM across core markets.',
     earningsSummary:[
-      'Net income RUB 445bn (+6% YoY), supported by fee income offsetting NII compression.',
-      'NIM declined 10bps QoQ to 5.4% — deposit rate competition and higher funding costs.',
-      'Technology and digital initiatives accelerating: SberPay MAU reached 68mn.',
-      'Corporate lending growth 8.4% YoY; retail growth moderated to 4.2%.',
-      'CET1 at 14.8%, above regulatory minimum; management not guiding capital distribution.',
+      'FY2025 consolidated net income HUF 1,148bn (+16% YoY); Q4 net income HUF 302bn (+5.1% QoQ).',
+      'NIM held at 4.2% group-wide — Hungarian operations stable; Bulgarian and Serbian units expanded.',
+      'Loan growth 12.4% YoY across the group; CEE subsidiaries outpacing home market at +18% YoY.',
+      'CET1 at 17.8%, comfortably above regulatory minimum; board proposed HUF 380/share dividend.',
+      'Digital customers reached 9.2mn; OTP Simple app transactions up 41% YoY.',
     ],
-    kpis:{ nim:{v:5.4,qoq:-0.1,yoy:-0.3}, roe:{v:23.8,qoq:-0.4,yoy:-0.9}, roa:{v:3.2,qoq:-0.1,yoy:-0.2}, costToIncome:{v:35.4,qoq:+0.6,yoy:+1.2}, nplRatio:{v:4.2,qoq:+0.1,yoy:+0.3}, cet1:{v:14.8,qoq:+0.2,yoy:+0.5}, loanGrowth:{v:8.4,qoq:null,yoy:+8.4}, netIncome:{v:445,qoq:-1.8,yoy:+6.0,label:'RUB 445bn'} },
-    strategyGuidance:'Management guided NIM stabilization by year-end as CBR rate cycle peaks. Corporate lending pipeline remains strong; retail to remain cautious. No guidance on capital return given macro uncertainty.',
-    qaSummary:'Investors focused heavily on NIM outlook in a high-rate environment and timeline to stabilization. Corporate credit quality discussed — management flagged close monitoring of sanctioned-sector exposures. Technology monetization strategy updated.',
-    investorConcerns:['NIM trajectory in prolonged high-rate environment','Sanction exposure impact on international business and capital','Corporate credit quality in challenged sectors','Capital return — dividend vs. buyback under regulatory uncertainty','Technology segment monetization and profitability timeline'],
+    kpis:{ nim:{v:4.2,qoq:0,yoy:-0.1}, roe:{v:18.6,qoq:+0.4,yoy:+1.2}, roa:{v:2.1,qoq:+0.1,yoy:+0.2}, costToIncome:{v:44.2,qoq:-0.8,yoy:-1.5}, nplRatio:{v:3.8,qoq:-0.2,yoy:-0.5}, cet1:{v:17.8,qoq:+0.3,yoy:+1.1}, loanGrowth:{v:12.4,qoq:null,yoy:+12.4}, netIncome:{v:302,qoq:+5.1,yoy:+16.0,label:'HUF 302bn'} },
+    strategyGuidance:'FY2026 guidance: ROE 18–21%, loan growth 10–14%, CIR below 45%. Management flagged potential acquisition pipeline in SEE; Serbia and Albania highlighted. Dividend policy maintained at 40–50% payout.',
+    qaSummary:'Analysts focused on M&A appetite and capital deployment post-dividend. Management outlined SEE opportunity map without naming specific targets. Hungarian macro sensitivity questioned — management highlighted portfolio diversification as buffer.',
+    investorConcerns:['M&A execution risk in SEE expansion','NIM pressure from ECB rate cuts flowing through to Hungarian market','Hungarian macro-political risks impacting regulatory environment','CIR improvement sustainability at scale','FX translation risk across multi-currency CEE portfolio'],
   }),
-  makeE('sber','Q4',2025,{
-    headlineTakeaway:'NIM stabilization confirmed; year-end capital strong despite challenging macro backdrop.',
+  makeE('pko','Q4',2025,{
+    headlineTakeaway:'PKO delivers strong FY2025 amid Polish rate stability; cost discipline and loan growth beat consensus.',
     earningsSummary:[
-      'Q4 net income RUB 468bn (+5.2% QoQ, +7% YoY); FY2025 net income RUB 1,748bn.',
-      'NIM recovered to 5.6% in Q4 as CBR signals rate peak — deposit repricing beneficial.',
-      'NPL improved to 4.0% — legacy resolution and write-off activity in Q4.',
-      'CET1 at 15.2%, reflecting retained earnings; board to discuss capital policy Q1 2026.',
-      'Digital ecosystem: 285mn active users across all platforms.',
+      'FY2025 net income PLN 7.8bn (+13% YoY); Q4 net income PLN 2.1bn (+3.5% QoQ).',
+      'NIM expanded to 4.8% — Polish rate environment stable; repricing benefits continued.',
+      'Mortgage book grew 14.2% YoY; corporate lending +11.3% — both ahead of sector.',
+      'CET1 at 18.4%, management guided capital return via buyback in H1 2026.',
+      'Digital: 6.8mn active mobile users (+19% YoY); IKO app rated #1 banking app in Poland.',
     ],
-    kpis:{ nim:{v:5.6,qoq:+0.2,yoy:+0.0}, roe:{v:24.5,qoq:+0.7,yoy:-0.5}, roa:{v:3.3,qoq:+0.1,yoy:0}, costToIncome:{v:34.9,qoq:-0.5,yoy:+0.8}, nplRatio:{v:4.0,qoq:-0.2,yoy:+0.1}, cet1:{v:15.2,qoq:+0.4,yoy:+0.9}, loanGrowth:{v:9.1,qoq:null,yoy:+9.1}, netIncome:{v:468,qoq:+5.2,yoy:+7.0,label:'RUB 468bn'} },
-    strategyGuidance:'Management guides FY2026 net income growth of 5–10% YoY; NIM expected to expand 20–40bps as rate cycle turns. Capital policy to be announced Q1 2026. Continued investment in AI and digital ecosystem.',
-    qaSummary:'Q&A on capital return policy was the dominant theme — management committed to Q1 2026 announcement. NIM outlook discussion constructive. Questions on geopolitical risk and new Western measures; management provided prepared but limited response.',
-    investorConcerns:['Capital return policy clarity and magnitude of FY2025 dividend','Geopolitical risk and potential further sanctions','NIM recovery pace as CBR begins easing cycle','Corporate credit cycle risks in 2026','AI/technology investment ROI and monetization path'],
+    kpis:{ nim:{v:4.8,qoq:+0.1,yoy:+0.3}, roe:{v:17.2,qoq:+0.3,yoy:+1.8}, roa:{v:1.8,qoq:+0.1,yoy:+0.2}, costToIncome:{v:38.4,qoq:-0.6,yoy:-2.1}, nplRatio:{v:3.9,qoq:-0.1,yoy:-0.4}, cet1:{v:18.4,qoq:+0.4,yoy:+1.3}, loanGrowth:{v:13.2,qoq:null,yoy:+13.2}, netIncome:{v:2100,qoq:+3.5,yoy:+13.0,label:'PLN 2.1bn'} },
+    strategyGuidance:'FY2026 guidance: ROE 16–18%, loan growth 10–13%, NIM 4.6–5.0%. Buyback programme of PLN 1.5bn announced for H1 2026. Continued investment in AI-driven credit decisioning.',
+    qaSummary:'Q&A centred on buyback programme size and capital return cadence. Management discussed Swiss franc mortgage legacy book resolution progress — PLN 3.2bn provision still outstanding. NIM guidance for 2026 questioned given NBP rate cut expectations.',
+    investorConcerns:['Swiss franc mortgage legacy provision uncertainty','NIM compression if NBP cuts rates in H2 2026','Buyback pace and capital return predictability','Digital transformation ROI versus investment costs','Competitive pressure from Pekao and Santander in mortgage market'],
+  }),
+  makeE('frhc','Q4',2025,{
+    headlineTakeaway:'Freedom Holding posts strong brokerage growth; Kazakhstan segment accelerates as financial super-app gains traction.',
+    earningsSummary:[
+      'Q3 FY2026 (Dec 2025) revenue $412mn (+28% YoY); net income $89mn (+22% YoY).',
+      'Kazakhstan customer accounts reached 1.8mn (+34% YoY) — Freedom Bank KZ scaling rapidly.',
+      'Brokerage commission income up 31% YoY on higher trading volumes and new product launches.',
+      'Insurance segment contributing 18% of group revenue — cross-sell penetration improving.',
+      'US broker-dealer operations stable; management flagged regulatory compliance costs as headwind.',
+    ],
+    kpis:{ nim:{v:6.2,qoq:+0.3,yoy:+0.8}, roe:{v:22.4,qoq:+1.1,yoy:+3.2}, roa:{v:3.1,qoq:+0.2,yoy:+0.5}, costToIncome:{v:58.4,qoq:-1.2,yoy:-3.1}, nplRatio:{v:2.1,qoq:-0.1,yoy:-0.3}, cet1:{v:16.2,qoq:+0.4,yoy:+1.8}, loanGrowth:{v:38.4,qoq:null,yoy:+38.4}, netIncome:{v:89,qoq:+4.2,yoy:+22.0,label:'$89mn'} },
+    strategyGuidance:'Management guiding FY2026 (March 2026 year-end) revenue of $1.7–1.8bn and net income of $360–380mn. Kazakhstan super-app expansion accelerating; insurance and payments deepening. No guidance on dividends — reinvestment focus maintained.',
+    qaSummary:'Analysts probed regulatory risk in US operations and SEC oversight. Management provided update on compliance programme investment. Kazakhstan growth trajectory discussed — management noted structural advantage from first-mover brokerage position.',
+    investorConcerns:['US regulatory and SEC compliance risk','Kazakhstan competitive overlap with Halyk and Kaspi in banking','Valuation premium sustainability given growth rate deceleration risk','Geopolitical risk on US-listed Kazakh financial entity','Revenue concentration in brokerage vs. banking diversification pace'],
   }),
 ];
 
@@ -218,11 +271,15 @@ function useLocalStorage(key, def) {
 }
 
 function AppProvider({ children }) {
-  const [peers, setPeers] = useLocalStorage('peers_v1', DEFAULT_PEERS);
-  const [entries, setEntries] = useLocalStorage('entries_v1', SAMPLE_ENTRIES);
+  const [peers, setPeers] = useLocalStorage('peers_v2', DEFAULT_PEERS);
+  const [entries, setEntries] = useLocalStorage('entries_v2', SAMPLE_ENTRIES);
   const [apiKey, setApiKey] = useLocalStorage('api_key', '');
 
-  const addPeer = useCallback((p) => setPeers(ps => [...ps, { ...p, id: Date.now().toString(), color: PEER_COLORS[ps.length % PEER_COLORS.length] }]), []);
+  const addPeer = useCallback((p) => setPeers(ps => {
+    const newPeer = { ...p, id: Date.now().toString(), color: PEER_COLORS[ps.length % PEER_COLORS.length] };
+    const sorted = [...ps, newPeer].sort((a, b) => (b.isHome ? 1 : 0) - (a.isHome ? 1 : 0));
+    return sorted;
+  }), []);
   const removePeer = useCallback((id) => { setPeers(ps => ps.filter(p => p.id !== id)); setEntries(es => es.filter(e => e.peerId !== id)); }, []);
   const updatePeer = useCallback((id, data) => setPeers(ps => ps.map(p => p.id === id ? { ...p, ...data } : p)), []);
 
@@ -351,22 +408,42 @@ function Header({ view, setView, onSettings }) {
 // ──────────────────────────────────────────────
 // PEER CARD
 // ──────────────────────────────────────────────
-function PeerCard({ peer, entry, onView, onAddEntry }) {
-  const kpi = entry?.kpis?.netIncome;
+function CategoryBadge({ category }) {
+  if (!category) return null;
+  const s = CATEGORY_STYLES[category] || CATEGORY_STYLES.core;
   return (
-    <div className="card p-5 flex flex-col gap-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+    <span style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}`, borderRadius: 4, padding: '1px 7px', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {CATEGORIES[category] || category}
+    </span>
+  );
+}
+
+function PeerCard({ peer, entry, onView, onAddEntry }) {
+  const isHome = peer.isHome;
+  return (
+    <div className={`card p-5 flex flex-col gap-4 hover:shadow-md transition-shadow ${isHome ? 'ring-2' : ''}`}
+      style={isHome ? { ringColor: '#1B3A6B', boxShadow: '0 0 0 2px #1B3A6B22, 0 1px 3px rgba(0,0,0,.06)' } : {}}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0 relative"
             style={{ background: peer.color }}>
             {peer.initials}
+            {isHome && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-white" title="Home bank"></span>}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900 text-sm">{peer.name}</h3>
-            <span className="text-xs text-gray-500">{peer.region}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="font-semibold text-gray-900 text-sm truncate">{peer.flag} {peer.name}</h3>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              {peer.ticker && <span className="text-xs font-mono text-gray-400 bg-slate-100 px-1.5 py-0 rounded">{peer.ticker}</span>}
+              <span className="text-xs text-gray-400">{peer.country}</span>
+            </div>
           </div>
         </div>
-        <StatusDot entry={entry} />
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <StatusDot entry={entry} />
+          <CategoryBadge category={peer.category} />
+        </div>
       </div>
 
       {entry ? (
@@ -409,25 +486,30 @@ function PeerCard({ peer, entry, onView, onAddEntry }) {
 // DASHBOARD VIEW
 // ──────────────────────────────────────────────
 function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
-  const { peers, getLatestEntry, allQuarters } = useContext(AppCtx);
-  const [filterRegion, setFilterRegion] = useState('All Regions');
-  const [filterQuarter, setFilterQuarter] = useState('');
+  const { peers, getLatestEntry, allQuarters, entries } = useContext(AppCtx);
+  const [filter, setFilter] = useState('All');
 
-  const filteredPeers = useMemo(() => peers.filter(p =>
-    filterRegion === 'All Regions' || p.region === filterRegion
-  ), [peers, filterRegion]);
+  const filteredPeers = useMemo(() => {
+    const f = filter.toLowerCase();
+    return peers.filter(p => f === 'all' || p.category === f);
+  }, [peers, filter]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Peer Bank Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Latest quarterly results across tracked peers</p>
+          <p className="text-sm text-gray-500 mt-0.5">Latest quarterly results — {peers.length} banks tracked</p>
         </div>
-        <div className="flex gap-2">
-          <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
-            {REGIONS.map(r => <option key={r}>{r}</option>)}
-          </select>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+            {FILTER_OPTIONS.map(opt => (
+              <button key={opt} onClick={() => setFilter(opt)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filter === opt ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+                {opt}
+              </button>
+            ))}
+          </div>
           <button className="btn btn-primary" onClick={() => openAddEntry(null)}>
             <Icons.Plus />Add Entry
           </button>
@@ -458,12 +540,11 @@ function DashboardView({ setView, setSelectedPeer, openAddEntry }) {
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Coverage Summary</div>
           <div className="flex flex-wrap gap-2">
             {allQuarters.slice(0, 8).map(({ quarter, year }) => {
-              const { entries } = useContext(AppCtx);
               const count = entries.filter(e => e.quarter === quarter && e.year === year).length;
               return (
                 <div key={`${year}-${quarter}`} className="text-center px-3 py-2 bg-slate-50 rounded-md border border-slate-200">
                   <div className="text-xs font-semibold text-gray-700">{quarter} {year}</div>
-                  <div className="text-xs text-gray-400">{count} peer{count !== 1 ? 's' : ''}</div>
+                  <div className="text-xs text-gray-400">{count} of {peers.length}</div>
                 </div>
               );
             })}
@@ -590,12 +671,17 @@ function PeerDetailView({ peerId, setView, openAddEntry }) {
       {/* Peer Header */}
       <div className="card p-5 mb-5 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background: peer.color}}>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm relative" style={{background: peer.color}}>
             {peer.initials}
+            {peer.isHome && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-white"></span>}
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">{peer.name}</h1>
-            <span className="text-sm text-gray-500">{peer.region}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg font-bold text-gray-900">{peer.flag} {peer.name}</h1>
+              {peer.ticker && <span className="text-xs font-mono text-gray-400 bg-slate-100 px-1.5 py-0.5 rounded">{peer.ticker}</span>}
+              <CategoryBadge category={peer.category} />
+            </div>
+            <span className="text-sm text-gray-500">{peer.country}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 no-print">
@@ -822,6 +908,11 @@ function ComparisonView() {
   const [selectedQ, setSelectedQ] = useState(allQuarters[0] ? `${allQuarters[0].year}-${allQuarters[0].quarter}` : '');
   const [chartKPI, setChartKPI] = useState('roe');
   const [activeTab, setActiveTab] = useState('table');
+  const [peerScope, setPeerScope] = useState('core'); // 'core' | 'all'
+
+  const visiblePeers = useMemo(() =>
+    peerScope === 'core' ? peers.filter(p => p.category === 'core') : peers
+  , [peers, peerScope]);
 
   const qEntry = useMemo(() => {
     if (!selectedQ) return null;
@@ -832,33 +923,45 @@ function ComparisonView() {
   const peerEntries = useMemo(() => {
     if (!qEntry) return {};
     const map = {};
-    peers.forEach(p => {
+    visiblePeers.forEach(p => {
       map[p.id] = entries.find(e => e.peerId === p.id && e.quarter === qEntry.quarter && e.year === qEntry.year) || null;
     });
     return map;
-  }, [peers, entries, qEntry]);
+  }, [visiblePeers, entries, qEntry]);
 
   const allConcerns = useMemo(() => {
     const all = [];
-    peers.forEach(p => {
+    visiblePeers.forEach(p => {
       const e = peerEntries[p.id];
       if (e?.investorConcerns) e.investorConcerns.forEach(c => all.push({ concern: c, peer: p }));
     });
     return all;
-  }, [peers, peerEntries]);
+  }, [visiblePeers, peerEntries]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Cross-Peer Comparison</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Side-by-side KPI benchmarking across all tracked banks</p>
+          <p className="text-sm text-gray-500 mt-0.5">Side-by-side KPI benchmarking — {visiblePeers.length} banks</p>
         </div>
-        <select value={selectedQ} onChange={e => setSelectedQ(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
-          {allQuarters.map(({ year, quarter }) => (
-            <option key={`${year}-${quarter}`} value={`${year}-${quarter}`}>{quarter} {year}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+            <button onClick={() => setPeerScope('core')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${peerScope === 'core' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+              Core Peers
+            </button>
+            <button onClick={() => setPeerScope('all')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${peerScope === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+              All Peers
+            </button>
+          </div>
+          <select value={selectedQ} onChange={e => setSelectedQ(e.target.value)} className="text-sm py-2 px-3 w-auto" style={{width:'auto'}}>
+            {allQuarters.map(({ year, quarter }) => (
+              <option key={`${year}-${quarter}`} value={`${year}-${quarter}`}>{quarter} {year}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4 border-b border-gray-200 no-print">
@@ -876,11 +979,15 @@ function ComparisonView() {
               <thead style={{background:'#f8fafc'}}>
                 <tr>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200 w-36">Metric</th>
-                  {peers.map(p => (
-                    <th key={p.id} className="text-center py-3 px-3 border-b border-gray-200 min-w-28">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{background: p.color}}></div>
-                        <span className="font-semibold text-gray-800 text-xs">{p.name.replace(' Bank','')}</span>
+                  {visiblePeers.map(p => (
+                    <th key={p.id} className={`text-center py-3 px-3 border-b border-gray-200 min-w-28 ${p.isHome ? 'bg-blue-50' : ''}`}>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <div className="flex items-center gap-1">
+                          <span>{p.flag}</span>
+                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background: p.color}}></div>
+                          <span className="font-semibold text-gray-800 text-xs">{p.ticker || p.initials}</span>
+                        </div>
+                        {p.isHome && <span className="text-xs text-blue-600 font-medium">Home</span>}
                       </div>
                     </th>
                   ))}
@@ -892,7 +999,7 @@ function ComparisonView() {
                     <td className="py-3 px-4 border-b border-gray-50">
                       <div className="font-medium text-gray-800 text-xs">{def.label}</div>
                     </td>
-                    {peers.map(p => {
+                    {visiblePeers.map(p => {
                       const e = peerEntries[p.id];
                       const k = e?.kpis?.[def.key];
                       if (!e || !k || k.v == null) return <td key={p.id} className="text-center py-3 px-3 border-b border-gray-50 text-gray-300 text-sm">—</td>;
@@ -919,7 +1026,7 @@ function ComparisonView() {
               {KPI_DEFS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
             </select>
           </div>
-          <TrendChart peers={peers} entries={entries} selectedKPI={chartKPI} quarters={allQuarters} />
+          <TrendChart peers={visiblePeers} entries={entries} selectedKPI={chartKPI} quarters={allQuarters} />
         </div>
       )}
 
@@ -934,10 +1041,10 @@ function ComparisonView() {
               {allConcerns.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <div className="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center text-white text-xs font-bold mt-0.5" style={{background: item.peer.color}}>
-                    {item.peer.initials[0]}
+                    {(item.peer.initials||'?')[0]}
                   </div>
                   <div>
-                    <span className="text-xs font-medium text-gray-500">{item.peer.name}</span>
+                    <span className="text-xs font-medium text-gray-500">{item.peer.flag} {item.peer.name} {item.peer.ticker ? `(${item.peer.ticker})` : ''}</span>
                     <p className="text-sm text-gray-800">{item.concern}</p>
                   </div>
                 </div>
@@ -1009,8 +1116,9 @@ function SearchView({ setView, setSelectedPeer }) {
           <div key={i} className="card p-4 hover:shadow-sm cursor-pointer transition-shadow"
             onClick={() => { setSelectedPeer(r.peer.id); setView('peer-detail'); }}>
             <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{background: r.peer.color}}>{r.peer.initials[0]}</div>
-              <span className="font-semibold text-sm text-gray-900">{r.peer.name}</span>
+              <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{background: r.peer.color}}>{(r.peer.initials||'?')[0]}</div>
+              <span className="font-semibold text-sm text-gray-900">{r.peer.flag} {r.peer.name}</span>
+              {r.peer.ticker && <span className="text-xs font-mono text-gray-400 bg-slate-100 px-1 rounded">{r.peer.ticker}</span>}
               <span className="text-xs text-gray-400">{r.entry.quarter} {r.entry.year}</span>
               <span className="tag bg-slate-100 text-slate-600 ml-auto">{r.section}</span>
             </div>
@@ -1138,7 +1246,7 @@ ${sourceText.slice(0, 15000)}`;
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Bank</label>
                   <select value={peerId} onChange={e => setPeerId(e.target.value)}>
-                    {peers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {peers.map(p => <option key={p.id} value={p.id}>{p.flag} {p.name}{p.ticker ? ` (${p.ticker})` : ''}</option>)}
                   </select>
                 </div>
                 <div>
@@ -1271,15 +1379,18 @@ ${sourceText.slice(0, 15000)}`;
 function SettingsModal({ onClose }) {
   const { peers, addPeer, removePeer, updatePeer, apiKey, setApiKey } = useContext(AppCtx);
   const [newName, setNewName] = useState('');
-  const [newRegion, setNewRegion] = useState('Kazakhstan');
+  const [newTicker, setNewTicker] = useState('');
+  const [newCountry, setNewCountry] = useState('Kazakhstan');
+  const [newFlag, setNewFlag] = useState('🏦');
   const [newInitials, setNewInitials] = useState('');
+  const [newCategory, setNewCategory] = useState('core');
   const [localKey, setLocalKey] = useState(apiKey);
   const [showKey, setShowKey] = useState(false);
 
   function handleAddPeer() {
     if (!newName.trim()) return;
-    addPeer({ name: newName.trim(), region: newRegion, initials: newInitials.trim() || newName.slice(0,2).toUpperCase() });
-    setNewName(''); setNewInitials('');
+    addPeer({ name: newName.trim(), ticker: newTicker.trim().toUpperCase(), country: newCountry, flag: newFlag, initials: newInitials.trim() || newName.slice(0,3).toUpperCase(), category: newCategory });
+    setNewName(''); setNewTicker(''); setNewInitials(''); setNewFlag('🏦');
   }
 
   function handleSaveKey() { setApiKey(localKey.trim()); }
@@ -1314,31 +1425,42 @@ function SettingsModal({ onClose }) {
             <div className="space-y-2 mb-4">
               {peers.map(p => (
                 <div key={p.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs" style={{background: p.color}}>
-                    {p.initials[0]}
+                  <div className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs flex-shrink-0" style={{background: p.color}}>
+                    {(p.initials||'?')[0]}
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-800">{p.name}</div>
-                    <div className="text-xs text-gray-400">{p.region}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-800">{p.flag} {p.name} {p.ticker && <span className="text-xs font-mono text-gray-400">({p.ticker})</span>}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-gray-400">{p.country}</span>
+                      <CategoryBadge category={p.category} />
+                      {p.isHome && <span className="text-xs text-blue-600 font-medium">★ Home bank</span>}
+                    </div>
                   </div>
-                  <button className="btn btn-danger btn-sm" onClick={() => { if(confirm(`Remove ${p.name} and all its entries?`)) removePeer(p.id); }}>
-                    <Icons.Trash />
-                  </button>
+                  {!p.isHome && (
+                    <button className="btn btn-danger btn-sm" onClick={() => { if(confirm(`Remove ${p.name} and all its entries?`)) removePeer(p.id); }}>
+                      <Icons.Trash />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
             <div className="border border-dashed border-gray-300 rounded-lg p-4">
               <h4 className="text-xs font-medium text-gray-600 mb-3 uppercase tracking-wide">Add New Bank</h4>
-              <div className="grid grid-cols-3 gap-2 mb-2">
+              <div className="grid grid-cols-4 gap-2 mb-2">
                 <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Bank name" style={{gridColumn:'span 2'}} />
+                <input type="text" value={newTicker} onChange={e => setNewTicker(e.target.value)} placeholder="Ticker" />
                 <input type="text" value={newInitials} onChange={e => setNewInitials(e.target.value)} placeholder="Initials" />
               </div>
-              <div className="flex gap-2">
-                <select value={newRegion} onChange={e => setNewRegion(e.target.value)}>
-                  {['Kazakhstan','Georgia','Russia','CEE/CIS','Other'].map(r => <option key={r}>{r}</option>)}
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                <input type="text" value={newFlag} onChange={e => setNewFlag(e.target.value)} placeholder="🏦" style={{width:'60px'}} />
+                <input type="text" value={newCountry} onChange={e => setNewCountry(e.target.value)} placeholder="Country" style={{gridColumn:'span 2'}} />
+                <select value={newCategory} onChange={e => setNewCategory(e.target.value)}>
+                  <option value="core">Core Peer</option>
+                  <option value="cee">CEE Peer</option>
+                  <option value="adjacent">Adjacent Financial</option>
                 </select>
-                <button className="btn btn-primary" onClick={handleAddPeer}><Icons.Plus />Add</button>
               </div>
+              <button className="btn btn-primary" onClick={handleAddPeer}><Icons.Plus />Add Bank</button>
             </div>
           </div>
 
@@ -1348,8 +1470,8 @@ function SettingsModal({ onClose }) {
             <p className="text-xs text-gray-500 mb-3">All data is stored locally in your browser's localStorage. Nothing is sent to external servers except AI generation requests to the Anthropic API.</p>
             <button className="btn btn-danger btn-sm" onClick={() => {
               if(confirm('Clear all saved data and reset to sample data? This cannot be undone.')) {
-                localStorage.removeItem('peers_v1');
-                localStorage.removeItem('entries_v1');
+                localStorage.removeItem('peers_v2');
+                localStorage.removeItem('entries_v2');
                 window.location.reload();
               }
             }}>Reset to sample data</button>
